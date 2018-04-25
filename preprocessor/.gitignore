@@ -1,0 +1,7 @@
+*.o
+*~
+src/con3d++
+src/TAGS
+src/Makefile.depend
+example/cut_block/cohe_block_1thread/cohe_block*.in*
+example/quad_tet_block*_multithreading/box_*thread/*.in

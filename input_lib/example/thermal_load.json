@@ -1,0 +1,6 @@
+{
+"number_of_loading_steps": 0,
+"#": "the next 2 are ignored if number_of_loading_steps is 0",
+"loading_time_steps": 0,
+"loading_increments": 0
+}

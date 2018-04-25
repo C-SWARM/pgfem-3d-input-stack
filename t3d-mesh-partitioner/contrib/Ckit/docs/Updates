@@ -1,0 +1,129 @@
+/* ***************************************************************************
+
+	C Programmer's Toolbox
+
+	Author:		Robert A Zimmermann, Carnegie-Mellon University
+			Department of Electrical and Computer Engineering
+	
+************************************************************************ */
+
+This file describes the modifications that I have inflicted on
+the toolbox by Robert A Zimmermann.  I hope that the results lead
+to a better toolkit.
+
+> Renaming of files to be shorter (so that they could be ported
+  to MS-DOS).
+
+> Reorganization of the include files.  Added "configr.h" file.
+
+> Modified the memory management system, so that the standard
+  malloc - free mechanism could be obtained when needed.  And
+  there seemed to be this need -- some mysterious problems appeared
+  (probably due to mallocing by sbrk, I did not investigate too deeply)
+  on some systems.  See also the README file.
+
+> Added prototypes everywhere.  I think this a good idea despite
+  the lasting presence of a few compilers that kick hell seeing them.
+
+> Added the get_from_current(list), get_node_val_current(list),
+  get_list_current(list) functions.  Usage:
+
+    get_from_current(list)      Removes and returns the current node 
+                                in the list.
+    get_node_val_current(list)  Returns the value of current node.
+    get_list_current(list)      Returns (but does not remove) the node at the
+				current position of the list.
+
+
+
+                                Petr Krysl,
+
+                        Czech Technical University in Prague
+                             Faculty of Civil Engineering
+                        166 29, Thakurova 7, Prague, Czech Republic
+                   Phone: (42 2) 2435 4473, Email: pk@power2.fsv.cvut.cz
+
+
+===================================================================================
+
+Modifications made to date 4 June 96:
+
+> Added functions 
+     get_from_current_prev(list), 
+     get_from_current_next(list). 
+  These functions serve as remedy to get_from_current(list) function, which removes 
+  the current node from the list but leaves it as the "current" one pointer in the
+  list. The added functions modifies the pointer to "current" node after the current
+  node has been removed and thus the functions get_list_next and get_list_previous
+  can operate efficiently using the pointer to the "current" node. This functions
+  should be used instead of get_from_current whenever possible.
+
+  Usage:
+
+   get_from_current_prev(list)       Removes and returns the current node in
+                                     the list. Sets the previous node as the new 
+                                     current node (should be used together with 
+                                     get_list_next).
+
+   get_from_current_next(list)       Removes and returns the current node in
+                                     the list. Sets the next node as the new 
+                                     current node (should be used together with 
+                                     get_list_prev).
+
+> Added functions 
+     link_to_head(list, List), 
+     link_to_tail(list, List), 
+     unlink_from_current_prev(list), 
+     unlink_from_current_next(list). 
+  These functions should help when migrating nodes between lists to avoid subsequent 
+  deallocation and allocation.
+
+  Usage:
+
+   link_to_head(list, List)          Adds List to the beginning of list.
+                                     No LIST or NODE is created or destroyed (is 
+                                     designated for use after previous unlink call).
+                                     Returns List's node.
+
+   link_to_tail(list, List)          Adds List to the end of list.
+                                     No LIST or NODE is created or destroyed (is 
+                                     designated for use after previous unlink call).
+                                     Returns List's node.
+
+   unlink_from_current_prev(list)    Unlinks the current node in the list and
+                                     returns it as a LIST. Sets the previous node as the 
+                                     new current node (should be used together with 
+                                     get_list_next). No LIST or NODE is created 
+                                     or destroyed (is designated for use before subsequent 
+                                     link call).
+
+   unlink_from_current_next(list)    Unlinks the current node in the list and
+                                     returns it as a LIST. Sets the next node as the new 
+                                     current node (should be used together with 
+                                     get_list_prev). No LIST or NODE is created 
+                                     or destroyed (is designated for use before subsequent 
+                                     link call).
+
+> Added routines 
+    _get_from_current_prev, 
+    _get_from_current_next, 
+    _list_link_list, 
+    _list_unlink_list, 
+    _unlink_current_prev, 
+    _unlink_current_next.
+  These routines are used when macros for the above functions are expanded.
+
+> All modifications influence only listP.c module and corresponding header listP.h.
+
+
+                                Daniel Rypl,
+
+                        Czech Technical University in Prague
+                             Faculty of Civil Engineering
+                        166 29, Thakurova 7, Prague, Czech Republic
+                   Phone: (42 2) 2435 4473, Email: dr@power2.fsv.cvut.cz
+
+
+
+
+

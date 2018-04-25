@@ -1,0 +1,20 @@
+To compile the input library:
+  module load gcc/6.2.0
+  make all
+
+The input library called from con3d++. To compile con3d++:
+  git clone git@gitlab-cswarm.crc.nd.edu:pgfem_3d/con3dpp.git
+  cd con3dpp/src
+  git checkout develop
+  make all
+
+Local_makeset.pl is used to run the input library. 
+Set t3d_path, split_path, and convert_path to the correct locations,
+and check that the line calling con3d has the "-d $dir" option:
+  system ("$convert_path -f $dir/$filebase -np $nproc $convert_options -d $dir");
+
+To run the example:
+  cd Run
+  ./local_makeset.pl clean -np 16
+
+Outputs will be generated in the "case_1_16CPU" directory

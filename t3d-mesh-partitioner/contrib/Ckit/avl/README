@@ -1,0 +1,46 @@
+AVL Trees V2.0
+22-Janulary-1993
+Paul Vixie
+
+There was a small bug in tree_delete() that manifested itself by corrupting
+trees occasionally.  It didn't show up in 1987 because I was using a micro-
+computer whose malloc() wasn't all that picky; on newer UNIX systems, malloc()
+and free() are extremely picky and if you misuse them, they will abuse you.
+
+I've taken the opportunity to convert the code to ANSI and POSIX.  If you
+don't have <stdlib.h> you will have some small porting work to do; most newer
+systems have this (BSDI, SYSV, Ultrix, OSF/1, OpenVMS, and so on) so you will
+(statistically speaking) not have too much of a problem with the changes.  I
+conditionalized the ANSI'isms (function prototypes), so if you don't have a
+fully ANSI compiler you should still be able to get this code to compile.
+The one interface change I made was to change the external definition of the
+tree from "int *" to "void *"; had "void *" existed in 1987 I would have used
+it then.  I changed the delete_uar from "pointer to function returning int"
+to "pointer to function returning void"; I don't know why I used "int" back
+in 1987, those functions have never returned anything.
+
+--------
+
+AVL Trees V1.0
+24-July-1987
+Paul Vixie
+
+This library and test program are useful for creating and using balanced
+binary trees (AVL trees).  The tree is held in memory, using malloc(3) to
+allocate storage.  A better version would allow file-based trees in 
+addition; once memory mapped files hit the UNIX(tm) community, this will
+be much easier to do.  In the meanwhile, these routines have been very
+useful to me for symbol tables and the like.  (Yes, I'm sure hashing is
+better in some way, but I've used this for symbol tables, just the same.)
+
+I cannot take credit for the algorithms.  See "Algorithms & Data Structures,"
+Niklaus Wirth, Prentice-Hall 1986, ISBN 0-13-022005-1.  This is an update of
+Wirth's previous book, titled "Algorythms + Data Structures = Programs,"
+which used Pascal as the language for examples.  This later book uses the
+newer Modula-2 for it's examples; this tree code was created using the
+Modula-2 examples as guidelines.  At the time I typed this stuff in (about
+a year ago, in July 1987), I understood how it all worked.  Today, well...
+
+This code is hereby placed in the public domain, unless restrictions apply
+from Prentice-Hall on the algorithms themselves.  If you use or redistribute
+this code, please leave my name (and Wirth's) in the comments.

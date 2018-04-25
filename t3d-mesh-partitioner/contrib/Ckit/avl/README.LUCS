@@ -1,0 +1,13 @@
+Package name:     avl
+Version number:   2.0
+Original author:  Paul Vixie <N/A>
+Report bugs to:   workexp@csc.liv.ac.uk
+Tested on:        HP 9000/735 running HP-UX 9.03
+C compiler used:  Version A.09.70
+Purpose:
+Balanced AVL binary tree routines for C. These functions create and manipulate
+a balanced binary (AVL) tree. Each node of the tree contains the expected left
+& right subtree pointers, a short-int balance indicator, and a pointer to the
+user-data.
+Date archived:    Tue 14 Mar 1995
+Special notes:    None

@@ -1,0 +1,76 @@
+
+#
+# Sample makefile to build a simple motif client
+#
+
+.SUFFIXES: .uid .uil
+#
+# Define rules
+#
+
+#                          need this for memory management
+CC = c89 -D_HPUX_SOURCE -g -DUNIX -DSTANDARD_MALLOC
+.c.o:
+	-$(RM) $@
+	$(CC) -c $(CFLAGS) $<
+
+#
+
+.c:
+	-$(RM) $@
+	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) -o $@
+#
+
+.uil.uid:
+	-$(RM) $@
+	$(UIL) -o $*.uid  $<
+
+
+# Define location of uil client 
+#
+UIL=/usr/bin/X11/uil
+
+#
+# Define Objects needed to build this example
+#
+common_root=/edisc/pk
+
+DEPLIBS=$(common_root)/Elixir/src/libelixir.a
+LOCAL_LIBRARIES = $(DEPLIBS) $(common_root)/Ckit/src/libckit.a  
+
+#
+# define build flags
+#
+INCLUDES        =  -I../include -I/edisc/pk/Ckit/include -I/usr/include/X11R4 -I/usr/include/Motif1.1
+CFLAGS = -DSYSV $(INCLUDES) 
+SYS_LIBRARIES=  -L /usr/lib/X11R4 -L /usr/lib/Motif1.1 -lMrm -lXm -lXt -lXmu -lX11 -lPW -lm
+LIBS= -lXm -lPW -lIM -lXt -lX11 -lXmu -lMrm -lm
+RM = rm -f
+
+LIB_OBJS = appshell.o UxXt.o \
+	elixir.o ondisk.o reprts.o \
+	move.o reshape.o model.o age_cb.o create_cb.o cmds.o agecmds.o \
+	ggroup.o ctlblock.o typein.o command.o colors.o fonts.o \
+	transfm.o rectvc.o geomops.o bezier.o actset.o \
+	graphics.o \
+	tria3d.o mark3d.o anntext3d.o line3d.o cbezc3d.o bcbezs3d.o \
+	viewa.o viewb.o viewc.o zbuffer.o utils.o dither.o
+
+AR = ar clq
+OBJS1           = age.o
+
+BINDIR          = .
+
+ OBJS = $(OBJS1) $(OBJS2) $(OBJS3)
+ SRCS = $(SRCS1) $(SRCS2) $(SRCS3)
+
+age: $(OBJS1) $(DEPLIBS)
+	$(RM) $@
+	$(CC) -o $@ $(LDOPTIONS) $(OBJS1) $(LOCAL_LIBRARIES) $(LDLIBS) $(SYS_LIBRARIES) $(EXTRA_LOAD_FLAGS)
+
+$(DEPLIBS): $(LIB_OBJS)
+	$(RM) $@
+	$(AR) $@ $(LIB_OBJS)
+
+clean:
+	$(RM) *.o

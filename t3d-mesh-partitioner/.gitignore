@@ -1,0 +1,9 @@
+*~
+*.o
+*.a
+src/t3d2psifel
+TAGS
+contrib/Ckit/src/Makefile
+contrib/Ckit/src/config.status
+contrib/Elixir/src/Makefile
+contrib/Elixir/src/config.status

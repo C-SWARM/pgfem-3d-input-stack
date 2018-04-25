@@ -1,0 +1,358 @@
+\documentclass[]{article}
+\usepackage{fullpage}
+\usepackage{hyperref}
+\usepackage{verbatim}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{booktabs}
+\usepackage{cprotect}
+\linespread{1.1}
+
+\lstset{basicstyle=\ttfamily}
+
+\def\pgf{\emph{PGFem3D}}
+\def\con{\emph{con3d++}}
+\def\gap{\vspace*{5mm}}
+
+\title{\con{} - Input Stack Generation for \pgf{}}
+\author{Matt Mosby}
+\date{\today}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+  A user guide for the converter utility \con. The purpose, usage,
+  options, and file formats are specified. Known bugs are delineated
+  and a brief overview of the internal code structure is provided from
+  a programmer's perspective to aid in expanding the utility.
+\end{abstract}
+\section{Description}
+The utility \con{} is used to generate a set of input files for
+running the parallel finite element code \pgf. The converter is run
+after the finite element mesh has been generated and partitioned using
+\emph{t3d2psifel}. The converter sets material properties for the
+elements, sets degrees of freedom for nodes, and applies nodal
+forces. If specified, \con{} also determines nodal periodicity and
+generates cohesive element input files.
+
+\section{Usage}
+Running \con{} with no options gives the help message:
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\begin{lstlisting}
+con3d++ -- Create set of input files for PGFem3D.
+Usage: con3d++ -np [nproc] -f [base filename] [options]
+
+Options:
+-pr args(3):	Periodic unit cell. Args = x,y,z dims
+-coh:		Cohesive modeling with interface elements
+-v:		Print extra logging info to stderr
+-h,--help:	Print this help message
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+The \verb=-pr= option sets the periodic nodal boundary conditions and
+requires an additional input file named
+\verb=[base filename].out.periodic=. This file contains the lists of
+periodic model entities on each set of periodic edges and faces of the
+unit cell. The format of the periodicity input file is specified in
+Section \ref{sec:format:per}.
+
+The \verb=-coh= option treats all elements associated with 'interface'
+model entities as cohesive elements. The cohesive elements are
+filtered and output separately in files named \verb=*.in.co=. The
+format of these files is specified in Section \ref{sec:format:coh}.
+
+The \verb=-v= option currently is not implemented. No additional
+output is generated.
+
+\section{File Formats}\label{sec:format}
+This section describes the input and output file formats used/need by
+\con{}. For all file formats, pseudo-code is used to delineate what
+information is given by each entry in the file. Comments are
+\emph{not} supported in \emph{any} of the files described in this
+section. Note that there are different mesh input file formats for
+serial versus parallel only. The same output file formats are used for
+both parallel and serial simulations using \pgf{}. Please see the
+\verb=examples= directory for demonstration of these file formats.
+\subsection{\emph{t3d2psifel} output file}\label{sec:format:t3d2psifel}
+The use of \emph{t3d2psifel} is not covered in this document, however
+\con{} uses its output directly as input and thus the
+\emph{t3d2psifel} output file format is described in this section. The
+partitioned mesh files must be named \verb=[base filename].out.*=
+where \verb=*= denotes the partition number. If \verb=nproc=$=1$, then
+the unpartitioned mesh file \verb=[base filename].out= is used. File
+is contains the following blocks of information in order
+\verb=HEADER=, \verb=NODES=, \verb=ELEMENT_BLOCK=(s).
+
+\gap
+\noindent{\bf \verb=HEADER= format}
+\begin{center}
+  \begin{minipage}{0.9\textwidth}
+    \begin{lstlisting}
+unused unused elem_degree remaining_line_is_unused
+n_nodes n_edges n_trias n_quads n_tetras n_pyrams n_wedges n_hexas
+    \end{lstlisting}
+  \end{minipage}
+\end{center}
+
+\gap
+\noindent{\bf \verb=NODES= format (serial)}
+\begin{center}
+  \begin{minipage}{0.9\textwidth}
+    \begin{lstlisting}
+id    x_coord y_coord z_coord    model_type model_id model_prop
+    \end{lstlisting}
+  \end{minipage}
+\end{center}
+
+\gap
+\noindent{\bf \verb=NODES= format (parallel)}
+\begin{center}
+  \begin{minipage}{0.9\textwidth}
+    \begin{lstlisting}
+id gid own  x_coord y_coord z_coord  model_type model_id model_prop
+    \end{lstlisting}
+  \end{minipage}
+\end{center}
+
+\gap
+\noindent{\bf \verb=ELEMENT_BLOCK= format}
+\begin{center}
+  \begin{minipage}{0.9\textwidth}
+    \begin{lstlisting}
+id connectivity_table model_type model_id model_prop neighbor_info
+    \end{lstlisting}
+  \end{minipage}
+\end{center}
+Edge, pyramid, and quadratic elements (except quadratic tetrahedrons)
+are not supported by \con{}. The \verb=neighbor_info= field is a
+series of integers representing information about the neighboring
+elements. For each element type, the number of entries in
+\verb=neighbor_info= is given in Table \ref{tab:n_info}.
+\begin{table}[htb]
+  \centering
+  \cprotect\caption{Number of entries in \verb=neighbor_info= for each element type.}
+\label{tab:n_info}
+\begin{tabular}{rccccc}
+\toprule
+Format&TRIA&QUAD&TETRA&WEDGE&HEX\\
+\midrule
+Parallel&3&4&8&10&12\\
+Serial&6&8&12&15&18\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\cprotect\subsection{\verb=*.out.header= file}\label{sec:format:header}
+This file defines many aspects of the linear solver, as well as
+material properties and their assignment, and assignment of boundary
+conditions. The file format is as follows:
+\begin{center}
+  \begin{minipage}{0.9\textwidth}
+\begin{lstlisting}
+is_quadratic n_dims n_materials n_concentrations n_orientations
+
+lin_maxit lin_tol epsilon
+
+material_property_0(13 floats then 2 integers)
+material_property_1(13 floats then 2 integers)
+...
+material_property_n(13 floats then 2 integers)
+
+concentration_0 concentration_1 ... concentration_n
+orientation_basis_0 ... orientation_basis_n
+
+n_material_assignments
+feature_type_0 feature_id_0 material_id_0 fiber_id_0
+...
+feature_type_n feature_id_n material_id_n fiber_id_n
+
+n_prescribed_features
+feature_type_0 feature_id_0 dof0 dof1 dof2
+...
+feature_type_n feature_id_n dof0 dof1 dof2
+
+n_prescribed_displacements
+displacements(n_prescribed_displacements floats)
+
+n_prescribed_forces
+feature_type_0 feature_id_0 F_x F_y F_z
+...
+feature_type_n feature_id_n F_x F_y F_z
+\end{lstlisting}
+  \end{minipage}
+\end{center}
+In the file format, the feature types are given by an integer
+representation shown in Table \ref{tab:type_map}.
+\begin{table}[htb]
+\centering
+\caption{Feature type identifiers.}\label{tab:type_map}
+\begin{tabular}{ccccccc}
+\toprule
+VERTEX&CURVE&SURFACE&REGION&PATCH&SHELL&INTERFACE\\
+\midrule
+1&2&3&4&5&6&7\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Periodic input file}\label{sec:format:per}
+The periodic file (\verb=*.out.periodic=) defines what model entities
+are periodic to each other on a rectangular prism unit cell. The file consists of six lists with the following format:
+\begin{center}
+  \begin{minipage}{0.9\textwidth}
+\begin{lstlisting}
+n_entities
+type_0 id_0 type_1 id_1 ... type_n id_n
+\end{lstlisting}
+  \end{minipage}
+\end{center}
+The lists are associated with \verb=Y_EDGES=, \verb=Z_EDGES=,
+\verb=X_EDGES=, followed by \verb=Z_FACES=, \verb=X_FACES=,
+\verb=Y_FACES=, and are read in that order. Note that edges have four
+entities in each periodic group, whereas faces only have
+two. Specifying \verb=n_entities= not equally divisible by the
+associated group size is a logical error and will abort \con{}.
+
+\subsection{\con{} main output}\label{sec:format:out}
+The main output of the code is a series of files named \verb=*_i.in=,
+where \verb=i= is the domain id. Each file contains the mesh
+information, boundary conditions and material property assignment for
+the domain \verb=i=. The file is formatted as follows:
+\gap
+\noindent{\bf \verb=HEADER=}
+\begin{center}
+  \begin{minipage}{0.9\textwidth}
+\begin{lstlisting}
+n_nodes n_dims n_elements
+
+lin_maxit lin_tol epsilon
+
+n_materials n_concentrations n_orientations
+
+n_elem_nodes_0 n_elem_nodes_1 ... n_elem_nodes_n
+\end{lstlisting}
+  \end{minipage}
+\end{center}
+
+\gap
+\noindent{\bf \verb=NODES=}
+\begin{center}
+  \begin{minipage}{0.9\textwidth}
+\begin{lstlisting}
+gid own id x_coord y_coord z_coord  model_type model_id model_prop
+\end{lstlisting}
+  \end{minipage}
+\end{center}
+
+\gap
+\noindent{\bf \verb=DERICHLET BC=}
+\begin{center}
+  \begin{minipage}{0.9\textwidth}
+\begin{lstlisting}
+n_constrained_nodes
+node_id_0 dof_x dof_y dof_z
+node_id_1 dof_x dof_y dof_z
+...
+node_id_n dof_x dof_y dof_z
+
+n_displacements
+displacement_0 ... displacement_n
+\end{lstlisting}
+  \end{minipage}
+\end{center}
+
+\gap
+\noindent{\bf \verb=ELEMENTS=}
+\begin{center}
+  \begin{minipage}{0.9\textwidth}
+\begin{lstlisting}
+id connectivity_table model_type model_id model_prop neighbor_info
+\end{lstlisting}
+  \end{minipage}
+\end{center}
+
+\gap
+\noindent{\bf \verb=MATERIAL ASSIGNMENT=}
+\begin{center}
+  \begin{minipage}{0.9\textwidth}
+\begin{lstlisting}
+element_id material_id fiber_id (typically same as material_id)
+\end{lstlisting}
+  \end{minipage}
+\end{center}
+
+\gap
+\noindent{\bf \verb=MATERIAL PROPERTIES=}
+Properties, concentrations and orientations are written verbatim as
+read from the header file (see Section \ref{sec:format:header}).
+
+\gap
+\noindent{\bf \verb=???=}
+The meaning of this line is unknown, but is required by \pgf{}.
+\begin{center}
+  \begin{minipage}{0.9\textwidth}
+\begin{lstlisting}
+0.5 0.5 0.5
+\end{lstlisting}
+  \end{minipage}
+\end{center}
+
+\gap
+\noindent{\bf \verb=NODAL FORCES=}
+\begin{center}
+  \begin{minipage}{0.9\textwidth}
+\begin{lstlisting}
+n_loaded_nodes
+node_id_0 F_x F_y F_z
+node_id_1 F_x F_y F_z
+...
+node_id_n F_x F_y F_z
+\end{lstlisting}
+  \end{minipage}
+\end{center}
+
+\gap
+\noindent{\bf \verb=VOLUME AND SURFACE LOADS=}
+The solver does not support volume or surface loads, however they are
+specified in the input as
+\begin{center}
+  \begin{minipage}{0.9\textwidth}
+\begin{lstlisting}
+0
+
+0
+\end{lstlisting}
+  \end{minipage}
+\end{center}
+
+\subsection{\con{} cohesive output}\label{sec:format:coh}
+The cohesive elements are output in files named \verb=*_i.in.co= for
+each domain \verb=i=. Note that the cohesive interface properties are
+specified separately and are not processed by \con{}. The cohesive
+files are formated as follows:
+\begin{center}
+  \begin{minipage}{0.9\textwidth}
+\begin{lstlisting}
+0
+
+n_coh_elements
+n_coh_elem_nodes_0 n_coh_elem_nodes_1 ... n_coh_elem_nodes_n
+
+elem_id connectivity_table 0 material_id model_prop
+...
+\end{lstlisting}
+  \end{minipage}
+\end{center}
+
+\section{Bugs}
+
+\section{Programmer's Guide}
+\subsection{General notes}
+Most of the containers inherit from \verb=std::list=. Therefore, the
+safest way to loop over elements in any container is to use
+\verb=iterator=s.
+
+\end{document}

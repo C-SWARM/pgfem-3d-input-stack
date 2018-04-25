@@ -1,0 +1,6 @@
+{
+"number_of_time_steps": 10,
+"time_steps": "0 : 0.1 : 0.01",
+"number_of_steps_to_print": 10,
+"list_of_steps_to_print": "0:9:1"
+}

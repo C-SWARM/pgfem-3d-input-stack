@@ -1,0 +1,12 @@
+# Young's modulus (Ex Ey Ez)
+# shear modulus (Gyz Gxz Gxy)
+# Poisson's ratio (nyz nxz nxy)
+# Coefficient of thermal expansion (ax ay az) [1/K]
+# Potential function flag: (deviatoric volumetric)
+7.0e+4 1.3e+4 0.0e+0   
+2.6e+4 0.0e+0 0.0e+0
+0.3461 0.0e+0 0.0e+0
+2.4e-5 2.4e-5 2.4e-5
+1.0e+7 
+1 2
+

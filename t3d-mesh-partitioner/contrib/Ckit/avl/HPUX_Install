@@ -1,0 +1,24 @@
+	This is a suite of subroutines to simplify using balanced Binary Trees
+in your own programs. The file tree.h includes a simple structure for the tree
+which works well for the demo, but would be restricted for most applications.
+
+
+Files Changed	:
+=================
+	None.
+
+
+To Build	:
+=================
+	Since this is not a comlete program, the functions should be included
+in the application program. Further requirements depend upon the application.
+	The makefile included is to complete the demonstration program called
+t_trtest. This is a worked example.
+
+Make test
+
+
+To Install Demo	:
+=================
+
+Make insta

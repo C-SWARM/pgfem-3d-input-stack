@@ -1,0 +1,62 @@
+XCOMM
+XCOMM  Imakefile
+XCOMM 
+
+XCOMM  The target "all_libs" creates both the libelixir.a and libesi.a
+XCOMM  libraries.
+
+
+XCOMM 
+XCOMM  Define these directories
+XCOMM
+
+TOP             = /usr/lpp/X11/Xamples
+ELIXIR_DIR      = /u/pk/Elixir
+CKIT_DIR        = /u/pk/Ckit
+
+XCOMM 
+XCOMM  Uncomment the desired architecture tag
+XCOMM  DEFINES = -DSUN4 
+XCOMM  DEFINES = -DHPUX 
+XCOMM  
+
+XCOMM  What compiler should be used?
+
+CC              = gcc
+GCCOPTS         = -O
+XCOMM  can also use -g -pedantic -ansi  -Wall  with gcc
+
+XCOMM  >>>>>> Don't need to edit below this line: <<<<<<
+XCOMM  ######################################################################
+INCLUDES        = -I$(TOP) -I$(ELIXIR_DIR)/include -I$(CKIT_DIR)/include
+LOCAL_LIBRARIES = 
+SYS_LIBRARIES   = $(XAWLIB) $(XMULIB) $(XTOOLLIB) $(XLIB) -lm
+
+BINDIR          = .
+TAGS            = etags
+
+SRCS = funky.c  \
+        tria3d.c triawd3d.c mark3d.c anntext3d.c ondisk.c \
+	move.c reshape.c model.c age_cb.c create_cb.c cmds.c agecmds.c \
+	ggroup.c ctlblock.c typein.c command.c colors.c fonts.c \
+	transfm.c line3d.c cbezc3d.c bcbezs3d.c graphics.c \
+	rectvc.c geomops.c bezier.c actset.c \
+	viewa.c viewb.c viewc.c zbuffer.c utils.c dither.c
+
+LIBELIXIR_OBJS =  \
+	elixir.o ondisk.o reprts.o \
+	move.o reshape.o model.o age_cb.o create_cb.o cmds.o agecmds.o \
+	ggroup.o ctlblock.o typein.o command.o colors.o fonts.o \
+	transfm.o rectvc.o geomops.o bezier.o actset.o \
+	graphics.o \
+	tria3d.o triawd3d.o mark3d.o anntext3d.o  \
+        line3d.o cbezc3d.o bcbezs3d.o quadwd3d.o \
+	viewa.o viewb.o viewc.o zbuffer.o utils.o dither.o
+
+LIBESI_OBJS = simplexf.o
+
+all_libs: libelixir.a libesi.a 
+
+NormalLibraryTarget(elixir, $(LIBELIXIR_OBJS))
+NormalLibraryTarget(esi, $(LIBESI_OBJS))
+

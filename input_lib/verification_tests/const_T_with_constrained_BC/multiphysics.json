@@ -1,0 +1,20 @@
+{
+"number_of_physics": 2,
+"physics_list": 
+[
+  {
+    "equation_id": 1,
+    "physics_name": "heat_transfer",
+    "degree_of_freedom": 1,
+    "vars_to_print": [0, 1]
+  },
+  {
+    "#": "0 for momentum equation, 1 for energy equation",
+    "equation_id": 0,
+    "physics_name": "solid_mechanics",
+    "degree_of_freedom": 3,
+    "coupled_physics_ids": [0],
+    "vars_to_print": [0, 3, 6, 11]
+  }
+]
+}

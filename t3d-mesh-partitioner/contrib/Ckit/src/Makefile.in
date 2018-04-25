@@ -1,0 +1,123 @@
+############################################################
+#
+#   Ckit: Makefile for libraries
+# 
+############################################################
+
+.NOEXPORT:
+SHELL = /bin/sh
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+prefix = .
+exec_prefix = $(prefix)
+
+###############################################################################
+#  If you want to install, rename these variables appropriately
+###############################################################################
+incdir = $$HOME/include
+libdir = $$HOME/lib
+
+INSTALL         = @INSTALL@
+INSTALL_PROGRAM = install.sh
+INSTALL_DATA    = install.sh
+
+CC              = @CC@
+DEFS            = @DEFS@ 
+CFLAGS          = @CFLAGS@ 
+LDFLAGS         = @LDFLAGS@
+LDOPTIONS       = $(CDEBUGFLAGS) $(LDFLAGS)
+
+LIBS            =  @LIBS@ 
+
+LOCAL_LIBRARIES = 
+SYS_LIBRARIES   = @LIBS@ -lm
+INCLUDES        = @CKIT_INCLUDES@ 
+
+AR              = ar
+AR_FLAGS        = rc
+RANLIB          = @RANLIB@
+
+# Where to send email about bugs and comments (locally)
+EMAIL=pk@power2.fsv.cvut.cz
+
+#
+# You probably don't need to change anything below here.
+#
+
+####################################################################
+# List of object files 
+
+LIBCKIT_OBJS =  alistP.o hashP.o listP.o mallocP.o memoryP.o treeP.o \
+                strfn.o tokens.o getopts.o vectP.o scanlP.o \
+	        skysol.o skycol.o \
+	        timeP.o expeval.o gaussP.o
+
+
+####################################################################
+# List of source files
+# 
+
+SRCS = alistP.c hashP.c listP.c mallocP.c memoryP.c treeP.c strfn.c \
+	tokens.c getopts.c vectP.c skyP.c scanlP.c
+
+#########################################################################
+#  Targets
+#
+all: all_libs
+
+all_libs: libckit.a 
+
+libckit.a: $(LIBCKIT_OBJS)
+	rm -f $@
+	$(AR) $(AR_FLAGS) $@ $(LIBCKIT_OBJS)
+	$(RANLIB) $@
+
+check: all 
+
+################################################################
+
+install: all 
+	for i in ../include/*.h; do \
+		cp $$i junk; \
+		$(INSTALL_DATA) $$i $(incdir)/`basename $$i`; \
+		mv junk $$i; \
+	done; \
+	$(INSTALL_DATA) libckit.a $(libdir)/libckit.a
+
+uninstall:
+	for i in ../include/*.h; do \
+		rm -f $(incdir)/`basename $$i`; \
+	done; \
+	rm -f $(libdir)/libckit.a
+
+################################################################
+# Dependencies
+
+.c.o:
+	$(CC) -c $(INCLUDES) $(CPPFLAGS) $(DEFS) $(CFLAGS) $<
+
+################################################################
+
+Makefile: Makefile.in config.status
+	$(SHELL) config.status
+config.status: configure
+	$(SHELL) config.status --recheck
+configure: configure.in
+	cd $(srcdir); autoconf
+
+################################################################
+# Miscellaneous targets
+
+clean:
+	rm -f libckit.a *.o      
+
+mostlyclean: clean
+
+distclean: clean
+	rm -f Makefile config.status
+
+realclean: distclean
+	rm -f TAGS
+

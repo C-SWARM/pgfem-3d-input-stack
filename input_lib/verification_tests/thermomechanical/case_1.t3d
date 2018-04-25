@@ -1,0 +1,49 @@
+# vertices
+vertex 11 xyz 0.000000e+00 0.000000e+00 0.000000e+00
+vertex 12 xyz 0.000000e+00 6.330000e+00 0.000000e+00
+vertex 13 xyz 6.330000e+00 0.000000e+00 0.000000e+00
+vertex 21 xyz 0.000000e+00 0.000000e+00 1.270000e+01
+vertex 22 xyz 0.000000e+00 4.114500e+00 1.270000e+01
+vertex 23 xyz 4.114500e+00 0.000000e+00 1.270000e+01
+vertex 24 xyz 0.000000e+00 6.330000e+00 1.270000e+01
+vertex 25 xyz 6.330000e+00 0.000000e+00 1.270000e+01
+
+
+# lines
+curve 111 vertex 11 12
+curve 112 vertex 11 13
+curve 121 vertex 21 22
+curve 122 vertex 21 23
+curve 123 vertex 22 24
+curve 124 vertex 23 25
+curve 131 vertex 11 21
+curve 132 vertex 12 24
+curve 133 vertex 13 25
+
+
+# curves
+curve 211 order 4 vertex 12 13
+polygon 1 xyz 3.708028e+00 6.330000e+00 0.000000e+00 weight 1.000000e+00
+polygon 2 xyz 6.330000e+00 3.708028e+00 0.000000e+00 weight 1.000000e+00
+curve 221 order 4 vertex 22 23
+polygon 1 xyz 2.410218e+00 4.114500e+00 1.270000e+01 weight 1.000000e+00
+polygon 2 xyz 4.114500e+00 2.410218e+00 1.270000e+01 weight 1.000000e+00
+curve 222 order 4 vertex 24 25
+polygon 1 xyz 3.708028e+00 6.330000e+00 1.270000e+01 weight 1.000000e+00
+polygon 2 xyz 6.330000e+00 3.708028e+00 1.270000e+01 weight 1.000000e+00
+
+
+# patches
+patch 501 normal 0.000000e+00 0.000000e+00 -1.000000e+00 boundary curve 111 211 -112 size def
+patch 502 normal 1.000000e+00 0.000000e+00 0.000000e+00 boundary curve 111 132 -123 -121 -131 size def
+patch 503 normal 0.000000e+00 -1.000000e+00 0.000000e+00 boundary curve 112 133 -124 -122 -131 size def
+patch 504 normal 0.000000e+00 0.000000e+00 -1.000000e+00 boundary curve 121 221 -122 size def
+patch 505 normal 0.000000e+00 0.000000e+00 -1.000000e+00 boundary curve -221 123 222 -124 size def
+
+
+# surfaces
+surface 701 curve 222 133 211 132 
+
+
+# region
+region 1 boundary surface -701 boundary patch 501 -502 503 -504 -505 size def property 0

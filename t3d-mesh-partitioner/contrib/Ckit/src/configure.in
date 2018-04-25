@@ -1,0 +1,61 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(../include/ckitcfg.h)
+
+AC_SET_MAKE
+AC_PROG_CC
+AC_ISC_POSIX
+AC_LN_S
+AC_PROG_CPP
+AC_AIX
+AC_PROG_RANLIB
+
+AC_CANONICAL_HOST
+add_c_flags=""
+case  $host_os in
+        hpux*)   # The HP-UX 8.07 (on HP/9000 720) is known to require this
+                add_c_flags="-D_HPUX_SOURCE"
+                ;;
+esac
+
+dnl  Now test for prototype support: we have to have them to compile Ckit
+dnl  Elixir, and ESI
+dnl
+cc_as_set=$CC
+proto_test_result=no
+for test_cc in $CC gcc xlc c89 cc
+do
+   test_cc="$test_cc $add_c_flags"
+   CC=$test_cc
+   unset rslt
+   unset ac_cv_prog_rslt # hack: relies on autoconf naming conventions
+   AC_CHECK_PROG(rslt, $CC, yes, no)
+   if test x$rslt = xyes ; then 
+      AC_TRY_COMPILE(,[int func(int a, double b); func(1, 0.0);],
+         [proto_test_result=yes 
+          break])
+   fi
+done
+if test x$proto_test_result = xyes ; then
+        CC=$test_cc      proto_test_result="yes ($CC)"
+else
+        CC=$cc_as_set    proto_test_result="no support for prototypes"
+fi
+AC_MSG_CHECKING(compile with prototypes)
+AC_MSG_RESULT($proto_test_result)
+
+CKIT_INCLUDES="-I../include"
+AC_SUBST(CKIT_INCLUDES)
+
+AC_CHECK_HEADERS(unistd.h)
+AC_HEADER_STDC
+
+AC_CONST
+
+AC_CHECK_FUNCS(random rand)
+
+AC_SUBST(srcdir)
+AC_SUBST(top_srcdir)
+AC_SUBST(CFLAGS)
+AC_SUBST(LIBS)
+
+AC_OUTPUT(Makefile)

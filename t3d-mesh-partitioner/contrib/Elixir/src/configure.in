@@ -1,0 +1,129 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(../include/Ecfg.h.in)
+AC_CONFIG_HEADER(../include/Ecfg.h)
+AC_CONFIG_AUX_DIR(.)
+
+AC_SET_MAKE
+AC_PROG_CC
+AC_ISC_POSIX
+AC_LN_S
+AC_PROG_CPP
+AC_AIX
+AC_PROG_RANLIB
+
+AC_CANONICAL_HOST
+add_c_flags=""
+case  $host_os in
+        hpux*)   # The HP-UX 8.07 (on HP/9000 720) is known to require this
+                add_c_flags="-D_HPUX_SOURCE -DUSE_DEFAULT_VISUAL"
+                ;;
+        sunos*)
+                add_c_flags="-DUSE_DEFAULT_VISUAL"
+esac
+
+
+dnl  Now test for prototype support: we have to have them to compile Ckit
+dnl  Elixir, and ESI
+dnl
+cc_as_set=$CC
+proto_test_result=no
+for test_cc in $CC gcc xlc c89 cc
+do
+   test_cc="$test_cc $add_c_flags"
+   CC=$test_cc
+   unset rslt
+   unset ac_cv_prog_rslt # hack: relies on autoconf naming conventions
+   AC_CHECK_PROG(rslt, $CC, yes, no)
+   if test x$rslt = xyes ; then 
+      AC_TRY_COMPILE(,[int func(int a, double b); func(1, 0.0);],
+         [proto_test_result=yes 
+          break])
+   fi
+done
+if test x$proto_test_result = xyes ; then
+        CC=$test_cc      proto_test_result="yes ($CC)"
+else
+        CC=$cc_as_set    proto_test_result="no support for prototypes"
+fi
+AC_MSG_CHECKING(compile with prototypes)
+AC_MSG_RESULT($proto_test_result)
+
+
+AC_PATH_PROGS(M4, gm4 gnum4 m4, m4)
+
+dnl  Must have Ckit.  If not in standard places, the user must supply path
+dnl
+CKIT_LIB="-L?"
+AC_CHECK_LIB(ckit, _get_list_next,
+  [
+     CKIT_LIB="-lckit"
+  ],[
+     probable_dir=../../Ckit/src
+     AC_MSG_CHECKING(guess of libckit.a location)
+     if test -f $probable_dir/libckit.a ; then
+        AC_MSG_RESULT($probable_dir)
+        CKIT_LIB="$probable_dir/libckit.a"
+     else
+        CKIT_LIB=-L?
+        AC_MSG_WARN(Ckit library not found in standard places -- set -L)
+     fi
+  ])
+AC_SUBST(CKIT_LIB)
+CKIT_INCLUDES="-I."
+AC_CHECK_HEADER(ckitcfg.h,,
+  [
+     probable_dir=../../Ckit/include
+     AC_MSG_CHECKING(guess of Ckit includes location)
+     if test -f $probable_dir/ckitcfg.h ; then
+        AC_MSG_RESULT($probable_dir)
+        CKIT_INCLUDES="-I$probable_dir"
+     else
+        CKIT_INCLUDES="-I?"
+        AC_MSG_WARN(Ckit includes not found in standard places -- set -I)  
+     fi
+  ])
+AC_SUBST(CKIT_INCLUDES)
+
+ELIXIR_LIB=""
+AC_SUBST(ELIXIR_LIB)
+ESI_LIB=""
+AC_SUBST(ESI_LIB)
+ELIXIR_INCLUDES="-I."
+AC_CHECK_HEADER(Elixir.h,,
+  [
+     probable_dir=../include
+     AC_MSG_CHECKING(guess of Elixir includes location)
+     if test -f $probable_dir/Elixir.h ; then
+        AC_MSG_RESULT($probable_dir)
+        ELIXIR_INCLUDES=-I$probable_dir
+     else
+        AC_MSG_WARN(ELIXIR includes not found in standard places -- set -I) 
+         ELIXIR_INCLUDES="-I?"
+     fi
+  ])
+AC_SUBST(ELIXIR_INCLUDES)
+
+AC_CONST
+
+AC_CHECK_FUNCS(getcwd getwd memcpy qsort random rand setpwent strchr strerror mkstemp)
+
+AC_CHECK_HEADERS(sys/time.h unistd.h)
+AC_HEADER_STDC
+AC_HEADER_DIRENT
+
+dnl  X11 libraries
+AC_PATH_XTRA
+AC_CHECK_LIB(Xaw, XawDialogGetValueString,,
+  [
+     AC_MSG_WARN(No support for Xaw (or Xmu) -- cannot build)
+  ], 
+  $X_PRE_LIBS $X_LIBS -lXt -lXmu -lX11 -lXext $X_EXTRA_LIBS)
+
+AC_SUBST(srcdir)
+AC_SUBST(top_srcdir)
+AC_SUBST(CFLAGS)
+AC_SUBST(LIBS)
+AC_SUBST(x_libraries)
+AC_SUBST(x_includes)
+
+AC_OUTPUT(Makefile)

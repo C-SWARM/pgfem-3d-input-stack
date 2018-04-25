@@ -1,0 +1,153 @@
+############################################################
+#
+#   ELIXIR Makefile for libraries
+# 
+############################################################
+
+.NOEXPORT:
+SHELL = /bin/sh
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+prefix = .
+exec_prefix = $(prefix)
+
+###############################################################################
+#  If you want to install, rename these variables appropriately
+###############################################################################
+incdir = $$HOME/include
+libdir = $$HOME/lib
+
+INSTALL         = @INSTALL@
+INSTALL_PROGRAM = install.sh
+INSTALL_DATA    = install.sh
+
+#  The HP-UX might require this command-line define to compile 
+#  these targets with c89: c89 -D_HPUX_SOURCE
+#     
+CC              = @CC@
+
+DEFS            = @DEFS@ 
+CFLAGS          = @CFLAGS@ @X_CFLAGS@
+LDFLAGS         = @LDFLAGS@
+LDOPTIONS       = $(CDEBUGFLAGS) $(LDFLAGS)
+
+LIBS            = @X_PRE_LIBS@ @X_LIBS@ @X_EXTRA_LIBS@ @LIBS@ 
+
+LOCAL_LIBRARIES = @ESI_LIB@ @ELIXIR_LIB@ @CKIT_LIB@
+X_LIB           = @X_PRE_LIBS@ @X_LIBS@ -lXaw -lXmu -lXt -lXext -lX11 @X_EXTRA_LIBS@
+SYS_LIBRARIES   = @LIBS@ $(X_LIB)  -lm
+INCLUDES        = @CKIT_INCLUDES@ @ELIXIR_INCLUDES@
+
+AR              = ar
+AR_FLAGS        = rc
+RANLIB          = @RANLIB@
+
+# Where to send email about bugs and comments (locally)
+EMAIL=pk@power2.fsv.cvut.cz
+
+#
+# You probably don't need to change anything below here.
+#
+
+####################################################################
+# List of object files 
+
+LIBELIXIR_OBJS =  \
+	elixir.o ondisk.o reprts.o ps.o \
+	move.o reshape.o model.o age_cb.o create_cb.o cmds.o agecmds.o \
+	ggroup.o ctlblock.o typein.o command.o colors.o fonts.o \
+	transfm.o rectvc.o geomops.o bezier.o actset.o ics.o isa.o \
+	graphics.o exi.o \
+	tria3d.o triawd3d.o mark3d.o markwd3d.o anntext3d.o  \
+        line3d.o cbezc3d.o bcbezs3d.o quadwd3d.o quad3d.o \
+	raprism.o tetra.o bcbhex.o pyramid.o hexah.o hexahwd.o tetrawd.o \
+	viewa.o viewb.o viewc.o zbuffer.o utils.o dither.o \
+	vecmark3d.o vector3d.o rbezc3d.o rbezs3d.o \
+	primtv1.o primtv3.o primtv4.o primtv7.o primtv8.o \
+	primtv9.o primtv10.o primtv11.o primtv12.o primtv13.o primtv15.o \
+	primtv17.o primtv18.o primtv19.o primtv20.o primtv21.o primtv22.o \
+	primtv23.o
+
+LIBESI_OBJS = esi.o simple1.o simple2.o selfile.o drawl.o path.o dir.o 
+
+####################################################################
+# List of source files
+# 
+
+SRCS =  tria3d.c triawd3d.c mark3d.c markwd3d.c anntext3d.c ondisk.c ps.c \
+	move.c reshape.c model.c age_cb.c create_cb.c cmds.c agecmds.c \
+	ggroup.c ctlblock.c typein.c command.c colors.c fonts.c \
+	transfm.c line3d.c cbezc3d.c bcbezs3d.c tetra.c bcbhex.c hexah.c \
+	tetrawd.c \
+	graphics.c \
+	rectvc.c geomops.c bezier.c actset.c ics.c isa.c \
+	viewa.c viewb.c viewc.c zbuffer.c utils.c dither.c
+
+#########################################################################
+#  Targets
+#
+all: all_libs
+
+all_libs: libelixir.a libesi.a 
+
+libelixir.a: $(LIBELIXIR_OBJS)
+	rm -f $@
+	$(AR) $(AR_FLAGS) $@ $(LIBELIXIR_OBJS)
+	$(RANLIB) $@
+
+libesi.a: $(LIBESI_OBJS)
+	rm -f $@
+	$(AR) $(AR_FLAGS) $@ $(LIBESI_OBJS)
+	$(RANLIB) $@
+
+check: all 
+
+################################################################
+
+install: all 
+	for i in ../include/*.h; do \
+		cp $$i junk; \
+		$(INSTALL_DATA) $$i $(incdir)/`basename $$i`; \
+		mv junk $$i; \
+	done; \
+	$(INSTALL_DATA) libelixir.a $(libdir)/libelixir.a; \
+	$(INSTALL_DATA) libesi.a $(libdir)/libesi.a
+
+uninstall:
+	for i in ../include/*.h; do \
+		rm -f $(incdir)/`basename $$i`; \
+	done; \
+	rm -f $(libdir)/libelixir.a $(libdir)/libesi.a 
+	        
+
+################################################################
+# Dependencies
+
+.c.o:
+	$(CC) -c $(INCLUDES) $(CPPFLAGS) $(DEFS) $(CFLAGS) $<
+
+################################################################
+
+Makefile: Makefile.in config.status
+	$(SHELL) config.status
+config.status: configure
+	$(SHELL) config.status --recheck
+configure: configure.in
+	cd $(srcdir); autoconf
+
+################################################################
+# Miscellaneous targets
+
+clean:
+	rm -f *.a *.o
+
+mostlyclean: clean
+
+distclean: clean
+	rm -f Makefile config.status
+
+realclean: distclean
+	rm -f TAGS
+

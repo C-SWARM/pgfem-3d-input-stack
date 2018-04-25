@@ -1,0 +1,167 @@
+/*
+
+              ####### #         ###   #     #   ###   ######
+              #       #          #     #   #     #    #     #
+              #       #          #      # #      #    #     #
+              #####   #          #       #       #    ######
+              #       #          #      # #      #    #   #
+              #       #          #     #   #     #    #    #
+              ####### #######   ###   #     #   ###   #     #
+
+                   
+                  Copyright: 1994,1995 Petr Krysl
+
+   Czech Technical University in Prague, Faculty of Civil Engineering,
+      Dept. Structural Mechanics, 166 29 Prague, Czech Republic,
+                  email: pk@power2.fsv.cvut.cz
+   With Dept. of Civil Engineering, Northwestern University, Evanston,
+     2145 Sheridan Rd., Evanston, IL. 60208, USA as of 1995.
+                  email: pkrysl@tam1.mech.nwu.edu 
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+*/
+
+
+What is here
+==============================================================================
+
+The directory tree below holds source code to the ELIXIR library.  The
+directory "doc" contains the "USER'S GUIDE" (unfinished as of Jun 95),
+and the "REFERENCE MANUAL".  The directory "include" and "src" contain
+the include files and the C-files respectively.  The directory "demos"
+holds source for a few demo programs.  Some of their capabilities
+could be useful as templates for more advanced uses e.g. in finite
+element mesh visualizations).
+
+Pre-requisites
+==============================================================================
+The Ckit library which is based on the C-toolkit by Robert A
+Zimmermann is used as the basic building block in Elixir.  It provides
+a lot of abstract data types.   Some convenient support packages have
+been added from other sources, e.g. token parsing, vector library etc.
+The source to the Ckit library is available from the author of Elixir.
+
+Installation
+==============================================================================
+
+The installation procedure is based on autoconf-generated configure
+scripts.  The build process has been tested so far on:
+        o IBM RS/6000 with AIX 3.2 with gcc 2.5.8 -- no problems,
+        o HP HP/9000 720 with HP-UX A.08.07, with c89 -- a heap of
+          problems: No includes for Xaw and Xmu, no Xfuncproto.h.
+          After provided these files in the directory ./include/X11,
+          the prototypes did not function properly.  Had to set the
+          macro flag -D_HPUX_SOURCE to compile it.  
+          The fix:  If yours is such a poor system as the one
+          described above, try setting -D_HPUX_SOURCE to the CFLAGS
+          in the Makefile (e.g.CFLAGS = -O -D_HPUX_SOURCE), 
+          and either create the subtree Elixir/include/X11 with files
+                        Xfuncproto.h
+                        Xaw/*.h (with all Athena includes)
+                        Xmu/*.h (with all Xmu includes)
+          or copy these files to the appropriate standard places 
+          (/usr/include/X11).  The files should be available somewhere
+          (more up-to-date system or the MIT X distribution).  See also 
+          the archive of public domain software adjusted for HPUX on
+          hpux.ee.ualberta.ca or geod.emr.ca (anonymous ftp).
+        o Sun 4C with SunOS 4.1.3, with gcc 2.5.8 -- no problems with
+          compilation.  
+
+
+To install ELIXIR do the following:
+
+1) cd ./src
+2) Run configure.  Your C-compiler has to support prototypes to
+   compile ELIXIR.  If configure fails to guess its name, and you know
+   of one, set its name on the command line as
+         $ CC=cc_I_know_of ./configure
+   If configure fails to guess where the X libraries and includes are,
+   and if you know where the stuff is, you may set the directories on
+   the command line (see ./configure --help).
+3) Run make to compile libraries: 
+      make all
+4) If you want to install the include files and the libraries to other
+   directory than the default ./include and ./src, set the variables
+   incdir and libdir in the Makefile.  Then run 
+      make install
+   To uninstall, run
+      make uninstall
+   Note, that you should not set incdir=../include and libdir=. , because
+   that would force the install script to overwrite the files in place.
+
+Optionally:
+
+5) cd ../demos
+6) Compile any demo programs by following similar lines as above:
+   First run configure, then cd to ./simple (or ./funky) and type 
+      make all
+   o The simple/simple program is a simple graphic editor.  You may try
+     it to see what can be done with ELIXIR.  There are two sample
+     graphic objects that you may wish to load -- they are named
+     ./simple/teapot and ./simple/brace.  Type "load teapot" on the
+     command line to view it. 
+   o The funky program is a primitive prototype for finite element
+     visualization.  It shows the variation of a given function over a
+     unit square.  The function is shown as a surface in color encoding.
+   o The geom program is a viewer of files in the GEOM format.  The format
+     is very simple, see e.g. the file Elixir/demos/geom/vw.geom.  The
+     first two lines give the number of the vertices (in the (V) list
+     below), and the number of the polygons (in the list (P) below).
+     Then follows list (V) with one line per vertex with
+     the vertex coordinates.  Finally, list (P) is given with one line
+     per polygon with (a) the number of vertices in the polygon and
+     (b) numbers of the vertices from the (V) list.  
+        Example: 
+             3	7    9    1  
+     stands for triangular polygon with vertices #7,9,1.  Vertex #7
+     has coordinates (0.189065 -0.153172 -0.169449).
+   
+     Other examples of use of Elixir in FE visualization and similar
+     applications are available on asking from the author.  Sorry,  
+     the user's guide should really include this, but I did not manage 
+     to complete it as yet.
+
+
+Bugs
+==============================================================================
+
+Mail all bug reports and suggestions to me, please.  I will try to
+give satisfaction, if the time is at least partially on my side. 
+
+
+Note on colormaps:
+
+        If the default algorithm of visual and colormap selection as
+built-in into Elixir causes technicolor effects (switching of colormap
+when the pointer moves from the Elixir windows to other windows on the
+display) try this fix: Modify the line "DEFS = -DHAVE_CONFIG_H" to
+"DEFS = -DHAVE_CONFIG_H -DUSE_DEFAULT_VISUAL" in the
+Elixir/src/Makefile and recompile the libraries libelixir.a and
+libesi.a (the fastest way is to remove elixir.o and colors.o and run
+make in Elixir/src), and then re-link the programs.  This is known to
+work on older Suns, and on the HP/9000 7xx series.
+
+
+                                Enjoy
+                                        Petr Krysl
+
+
+
+
+
+
+
+

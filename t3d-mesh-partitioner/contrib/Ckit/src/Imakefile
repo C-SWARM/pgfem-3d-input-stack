@@ -1,0 +1,30 @@
+XCOMM
+XCOMM  Define: MSDOS for MS-DOS, 
+XCOMM          SUN4  for Sun (SunOS 4.1.1),
+XCOMM          HPUX  for HP/9000 (700) (HP-UX).
+XCOMM
+XCOMM  See the file configr.h for the effects this will have.
+XCOMM  
+DEFINES = 
+
+XCOMM Define compiler to use
+CC      = gcc
+CDEBUGFLAGS = -O
+
+INCLUDES = -I../include
+
+INC = listP.h alistP.h hashP.h treeP.h memoryP.h listComp.h
+
+SRC = alistP.c listP.c treeP.c hashP.c memoryP.c mallocP.c
+
+OBJ = alistP.o listP.o treeP.o hashP.o memoryP.o mallocP.o
+
+LIB = ckit
+
+ALL = $(LIB)
+
+
+NormalLibraryTarget($(LIB),$(OBJ))
+
+DependTarget()
+

@@ -1,0 +1,44 @@
+> add hooks that would be called before the display list is processed
+  and after it was traversed.  The hooks could be useful in doing some
+  exposure handling in specialized ways
+
+> implement model clipping for control
+  polygons of Bezier curves 
+
+> implement model clipping for Bezier
+  surfaces.  
+
+> extrusion Bezier patch creation routines + callbacks
+
+> actset refman entries;  describe the way saving of active sets is done
+
+> user's guide!!!
+
+> small axes in the corner
+
+> dynamic view manipulations using only the WC bbox
+
+> timeout during dynamic-viewing redisplay
+
+> model clipping by scrollbar?
+
+> shrink for Bezier patch, shrink for curves and lines
+
+> model does NOT need to register methods
+
+> how-to-add-go incorporate into uguide
+
+> Include in refman: 
+void
+EMDispatchToGraphicObjects(EModel *m_p, MessageP message, caddr_t data);
+
+
+
+> PSDUMP:  Report an error when dumping 24-bit image -- it cannot 
+  be handled yet.
+
+> Speed up change of layer.
+
+> fill_triangle_with_colors() is not working correctly for some data.
+
+  
