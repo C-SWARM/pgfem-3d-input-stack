@@ -447,12 +447,14 @@ void read_numerical_param(Input_Data &inputs)
     inputs.max_num_of_iterations = json_in["nonlinear_solution_method"]["max_num_of_iterations"];
   }
 
-  //loop through each physics listed in the numerica_param json file
+  //loop through each physics listed in the numerical_param json file
   for (uint i = 0; i < json_in["nonlinear_solution_method"]["physics"].size(); ++i) {
 
     //These physics-specific data can be unordered in the json file. 
     //As a result, physics_ID is their position in the physics_list
-    int current_physics = json_in["nonlinear_solution_method"]["physics"][i]["physics_ID"];
+    size_t current_physics = json_in["nonlinear_solution_method"]["physics"][i]["physics_ID"];
+    assert(size_t(inputs.number_of_physics) >= current_physics + 1
+                    && "numerical param file: out of bounds physics_ID in nonlinear_solution_method");
 
     if(!(json_in["nonlinear_solution_method"]["physics"][i]["max_num_of_iterations"].is_null())) {
       inputs.physics_list[current_physics].max_num_of_iterations = json_in["nonlinear_solution_method"]["physics"][i]["max_num_of_iterations"];
