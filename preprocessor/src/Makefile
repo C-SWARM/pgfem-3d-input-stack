@@ -4,9 +4,9 @@ CC = g++ -fopenmp
 
 CFLAGS = -O3 -std=c++14 -g 
 
-INCLUDES = -I../../pgfem3d_input/include -I../include
+INCLUDES = -I../../input_lib/include -I../include
 
-LIBS = -lm ../../pgfem3d_input/libpgfem3d_pipeline.a
+LIBS = -lm ../../input_lib/libpgfem3d_pipeline.a
 
 
 PROGRAM = con3d++
