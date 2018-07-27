@@ -872,8 +872,11 @@ void read_output_settings(Input_Data &inputs)
   json json_in;
   foutput >> json_in;
 
-  inputs.reaction_filename = json_in["reaction_filename"];
-  inputs.exascale_settings = json_in["exascale"];
+  if (!(json_in["reaction_filename"].is_null())) //use default if missing
+    inputs.reaction_filename = json_in["reaction_filename"];
+    
+  if (!(json_in["exascale"].is_null())) //use default if missing
+    inputs.exascale_settings = json_in["exascale"];
 
   for (uint i = 0; i < json_in["probs"].size(); ++i) {
     Prob prob;
