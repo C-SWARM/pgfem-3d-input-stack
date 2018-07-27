@@ -44,3 +44,6 @@ void read_normal_in (Input_Data &inputs);
 //reads periodic data into input data structure
 void read_periodic (Input_Data &inputs);
 
+//read output settings file into inputs data structure
+void read_output_settings (Input_Data &inputs);
+

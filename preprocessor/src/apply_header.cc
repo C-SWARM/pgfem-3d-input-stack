@@ -25,18 +25,18 @@ void calculate_bc(const Header &header, Domains &domains, int physics_num = 1)
     NodeBC<int> tmp;
 
     // for each domain
-    for(size_t dom_id = 0; dom_id < domains.size(); dom_id++){                              //parallel loop over domains
+    for(size_t dom_id = 0; dom_id < domains.size(); dom_id++){                          //parallel loop over domains
     NodeBCList<int> node_entry;
       dom = domains.begin()+dom_id;
       // for each boundary condition, find range of matching nodes
-      for(bc_it = bc->begin(); bc_it != bc->end(); ++bc_it){                                //loop over bc's
-	node_range = dom->nodes.find_model_range(bc_it->model());                           //find which nodes belong to that range
-	// for each node in range, set dofs according to boundary condition 
-	for(nodes_it = node_range.first; nodes_it != node_range.second; ++nodes_it){        //apply bc to those nodes
-	  tmp.set_node_id(nodes_it->id());
-	  tmp.set_bc(bc_it->bc());
-	  node_entry.push_back(tmp);
-	}
+      for(bc_it = bc->begin(); bc_it != bc->end(); ++bc_it){                            //loop over bc's
+	      node_range = dom->nodes.find_model_range(bc_it->model());                       //find which nodes belong to that range
+	      // for each node in range, set dofs according to boundary condition 
+	      for(nodes_it = node_range.first; nodes_it != node_range.second; ++nodes_it){    //apply bc to those nodes
+	        tmp.set_node_id(nodes_it->id());
+	        tmp.set_bc(bc_it->bc());
+	        node_entry.push_back(tmp);
+	      }
       }
       node_entry.sort_node_id();      // sort bc by node id
 
@@ -56,18 +56,18 @@ void calculate_ic(const Header &header, Domains &domains, int physics_num)
     NodeIC<int> tmp;
 
     // for each domain
-    for(size_t dom_id = 0; dom_id < domains.size(); dom_id++){                              //parallel loop over domains
+    for(size_t dom_id = 0; dom_id < domains.size(); dom_id++){                          //parallel loop over domains
     NodeICList<int> node_entry;
       dom = domains.begin()+dom_id;
       // for each boundary condition, find range of matching nodes
-      for(ic_it = ic->begin(); ic_it != ic->end(); ++ic_it){                                //loop over ic's
-	node_range = dom->nodes.find_model_range(ic_it->model());                           //find which nodes belong to that range
-	// for each node in range, set dofs according to boundary condition 
-	for(nodes_it = node_range.first; nodes_it != node_range.second; ++nodes_it){        //apply ic to those nodes
-	  tmp.set_node_id(nodes_it->id());
-	  tmp.set_ic(ic_it->ic());
-	  node_entry.push_back(tmp);
-	}
+      for(ic_it = ic->begin(); ic_it != ic->end(); ++ic_it){                            //loop over ic's
+	      node_range = dom->nodes.find_model_range(ic_it->model());                       //find which nodes belong to that range
+	      // for each node in range, set dofs according to boundary condition 
+	      for(nodes_it = node_range.first; nodes_it != node_range.second; ++nodes_it){    //apply ic to those nodes
+	        tmp.set_node_id(nodes_it->id());
+	        tmp.set_ic(ic_it->ic());
+	        node_entry.push_back(tmp);
+	      }
       }
       node_entry.sort_node_id();      // sort ic by node id
 

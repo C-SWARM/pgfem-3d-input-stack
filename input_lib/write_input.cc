@@ -270,7 +270,8 @@ void write_co_props(const Input_Data inputs, const char *co_namebase)
 }
 
 //writes normal_in data to file using the data structure
-void write_normal_in(const Input_Data inputs, const char *filebase) {
+void write_normal_in(const Input_Data inputs, const char *filebase)
+{
 
   if (!inputs.normal_in_flag) return;  //no co_props.json file found
 
@@ -317,4 +318,46 @@ void write_periodic(const Input_Data inputs, const char *periodic_namebase) {
 
   cout << "wrote to " << fileToWrite << endl;
   fperiodic.close();
+}
+
+//writes output settings to file using the data structure
+void write_output_settings(const Input_Data inputs, const char *filebase)
+{
+  //if output.json file wasn't provided
+  if (!inputs.output_settings_flag) {  
+    return;
+  }
+
+  ofstream foutput_config_in;
+
+  string fileToWrite = filebase;
+  fileToWrite += "/output_config.in";
+
+  foutput_config_in.open(fileToWrite);
+  
+
+  foutput_config_in << inputs.reaction_filename << "\n";
+  foutput_config_in << inputs.exascale_settings << "\n\n";
+  foutput_config_in << inputs.probs.size() << "\n\n";
+
+  //loop through and print each physics data
+  for (const auto& prob : inputs.probs) {
+    foutput_config_in << prob.MatchedNodeIDs.size() << "\n";
+    for (const auto& nodeDomID : prob.MatchedNodeIDs)
+      foutput_config_in << nodeDomID.dom << " " << nodeDomID.ID << " ";
+    
+    foutput_config_in << "\n" << prob.quantity_of_interest << "\n";
+    foutput_config_in << prob.is_cell_data << "\n";
+    foutput_config_in << prob.integrate << "\n";
+    
+    foutput_config_in << prob.outputTimeStep.size() << "\n";
+    for (const auto& timestep : prob.outputTimeStep)
+      foutput_config_in << timestep << " ";
+    foutput_config_in << "\n" << prob.out_filename ;
+    
+    foutput_config_in << "\n\n\n";
+  }
+  
+  cout << "wrote to " << fileToWrite << endl;
+  foutput_config_in.close();
 }

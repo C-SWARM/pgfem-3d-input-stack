@@ -27,6 +27,7 @@
 #include <iostream>
 #include <fstream>
 #include <time.h>
+#include <algorithm>
 
 #include "read_input.h"
 #include "write_input.h"
@@ -104,7 +105,7 @@ int main(int argc, char **argv)
     }
 
     // apply header file
-    if(opt.human_readable()){
+    if(opt.human_readable()){  //human-readable
       tick();
       calculate_bc(header, domains, inputs.number_of_physics);
       tock("calculate_bc (seconds)   = ");
@@ -112,8 +113,27 @@ int main(int argc, char **argv)
       tick();
       calculate_ic(header, domains, inputs.number_of_physics);
       tock("calculate_ic (seconds)   = ");
+      
+      Domains::iterator dom;
+      NodeList::iterator nodes_it;
+      NodeList::Range node_range;
+      for (int i = 0; i < inputs.probs.size(); ++i){                            //for each prob from json
+        for(size_t dom_id = 0; dom_id < domains.size(); ++dom_id){              //for each domain in domain list
+          dom = domains.begin()+dom_id;
+          for (const auto& pair : inputs.probs[i].geomTypeID){                  // for each pair, find range of matching nodes  
+            node_range = dom->nodes.find_model_range(pair.type, pair.ID);
+            for(nodes_it = node_range.first; nodes_it != node_range.second; ++nodes_it){
+              NodeDomID nodeDomID;
+              nodeDomID.dom = nodes_it->own();    //push node's domain
+	            nodeDomID.ID = nodes_it->id();      //push node's ID
+	            inputs.probs[i].MatchedNodeIDs.push_back(nodeDomID);
+            }
+          }
+        }
+      }
+   
     }
-    else{
+    else{  //non human-readable
       tick();
       apply_header_derichlet_bc(header,opt,domains);
       tock("apply_header_derichlet_bc (seconds)   = ");
@@ -131,6 +151,7 @@ int main(int argc, char **argv)
     tick();
     apply_header_mat_assignment(header,opt,domains);
     tock("apply_header_mat_assignment (seconds) = ");
+
 
     // filter cohesive elements
     if(opt.cohesive()){
@@ -174,6 +195,8 @@ int main(int argc, char **argv)
       write_normal_in(inputs, opt.base_dname());
       
       write_loads(inputs, opt.base_dname());
+      
+      write_output_settings(inputs, opt.base_dname());
     }
     tock("write_PGFem3D_input_files (seconds)   = ");
   }

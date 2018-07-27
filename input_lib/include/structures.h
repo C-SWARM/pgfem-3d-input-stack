@@ -10,7 +10,9 @@ struct Physics;
 struct Basis_Vector;
 struct HR_Material;
 struct Cohesive_Potential;
-struct TypeID;  
+struct TypeID;
+struct Prob;
+struct NodeDomID;
 
 //contains only non physics-specific data and a list of physics structs
 struct Input_Data{
@@ -86,6 +88,12 @@ struct Input_Data{
   int number_of_steps_to_print = 0;
   std::vector<int> list_of_steps_to_print;
 
+
+  /*******************output settings data*****************/
+  bool output_settings_flag = false;
+  std::string reaction_filename = "Name_not_set";
+  int exascale_settings = 0;
+  std::vector<Prob> probs;
 };
 
 struct Basis_Vector{
@@ -183,4 +191,20 @@ struct Cohesive_Potential{
 struct TypeID{
   int type = 0;
   int ID = 0;
+};
+
+struct NodeDomID{
+  size_t dom = 0;
+  size_t ID = 0;
+};
+
+struct Prob{
+  std::vector<TypeID> geomTypeID;
+  std::vector<NodeDomID> MatchedNodeIDs;
+  int quantity_of_interest;
+  bool is_cell_data;
+  bool integrate;
+  
+  std::vector<int> outputTimeStep;
+  std::string out_filename;
 };

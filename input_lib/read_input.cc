@@ -71,6 +71,7 @@ void read_input (Input_Data &inputs)
   read_co_props(inputs);
   read_normal_in(inputs);
   read_periodic(inputs);
+  read_output_settings(inputs);
 }
 
 //reads multiphysics data into data structure
@@ -820,24 +821,24 @@ void read_periodic (Input_Data &inputs)
       //read type parameter:
       //optional string input for geometry type
       if (json_in["pairs"][set][pair]["type"].is_string()) {
-	if (json_in["pairs"][set][pair]["type"] == "vertex")
-	  typeID.type = 1;
-	else if (json_in["pairs"][set][pair]["type"] == "curve")
-	  typeID.type = 2;
-	else if (json_in["pairs"][set][pair]["type"] == "surface")
-	  typeID.type = 3;
-	else if (json_in["pairs"][set][pair]["type"] == "region")
-	  typeID.type = 4;
-	else if (json_in["pairs"][set][pair]["type"] == "patch")
-	  typeID.type = 5;
-	else if (json_in["pairs"][set][pair]["type"] == "interface")
-	  typeID.type = 7;
-	else{
-	  cerr << "Invalid periodic geometry type\n";
-	  cerr << "\"type\" in periodic pair must be:\n";
-	  cerr << "\"vertex\", \"curve\", \"surface\", \"region\", \"patch\", or \"interface\" or the integer equivalent\n";
-      	exit(1);
-	}
+	      if (json_in["pairs"][set][pair]["type"] == "vertex")
+	        typeID.type = 1;
+	      else if (json_in["pairs"][set][pair]["type"] == "curve")
+	        typeID.type = 2;
+	      else if (json_in["pairs"][set][pair]["type"] == "surface")
+	        typeID.type = 3;
+	      else if (json_in["pairs"][set][pair]["type"] == "region")
+	        typeID.type = 4;
+	      else if (json_in["pairs"][set][pair]["type"] == "patch")
+	        typeID.type = 5;
+	      else if (json_in["pairs"][set][pair]["type"] == "interface")
+	        typeID.type = 7;
+	      else{
+	        cerr << "Invalid periodic geometry type\n";
+	        cerr << "\"type\" in periodic pair must be:\n";
+	        cerr << "\"vertex\", \"curve\", \"surface\", \"region\", \"patch\", or \"interface\" or the integer equivalent\n";
+            	exit(1);
+	      }
       }
       else                                     //read original integer input
         typeID.type = json_in["pairs"][set][pair]["type"];
@@ -848,6 +849,74 @@ void read_periodic (Input_Data &inputs)
     inputs.typeID_sets.push_back(typeID_set);  //add this set to the input's set vector
 
       
-    fperiodic.close();
   }
+  fperiodic.close();
+}
+
+
+//read output settings file into inputs data structure
+void read_output_settings(Input_Data &inputs)
+{
+  cout << "reading output settings file\n";
+
+  string output_settings_file = "output.json";
+  
+  ifstream foutput(output_settings_file);
+  
+  if (!foutput.good()) {    //file doesn't exist
+    cout << output_settings_file << " not found" << endl;
+    return;
+  }
+  inputs.output_settings_flag = true;
+
+  json json_in;
+  foutput >> json_in;
+
+  inputs.reaction_filename = json_in["reaction_filename"];
+  inputs.exascale_settings = json_in["exascale"];
+
+  for (uint i = 0; i < json_in["probs"].size(); ++i) {
+    Prob prob;
+    for (uint j = 0; j < json_in["probs"][i]["pairs"].size(); ++j){
+      TypeID typeID;
+      
+      //read type parameter:
+      //optional string input for geometry type
+      if (json_in["probs"][i]["pairs"][j]["type"].is_string()) {
+	      if (json_in["probs"][i]["pairs"][j]["type"] == "vertex")
+	        typeID.type = 1;
+	      else if (json_in["probs"][i]["pairs"][j]["type"] == "curve")
+	        typeID.type = 2;
+	      else if (json_in["probs"][i]["pairs"][j]["type"] == "surface")
+	        typeID.type = 3;
+	      else if (json_in["probs"][i]["pairs"][j]["type"] == "region")
+	        typeID.type = 4;
+	      else if (json_in["probs"][i]["pairs"][j]["type"] == "patch")
+	        typeID.type = 5;
+	      else if (json_in["probs"][i]["pairs"][j]["type"] == "interface")
+	        typeID.type = 7;
+	      else{
+	        cerr << "Invalid periodic geometry type\n";
+	        cerr << "\"type\" in output settigns prob pair must be:\n";
+	        cerr << "\"vertex\", \"curve\", \"surface\", \"region\", \"patch\", or \"interface\" or the integer equivalent\n";
+          	exit(1);
+	      }
+      }
+      else                                     //read original integer input
+        typeID.type = json_in["probs"][i]["pairs"][j]["type"];
+      
+      typeID.ID = json_in["probs"][i]["pairs"][j]["ID"];
+      prob.geomTypeID.push_back(typeID);
+    }
+    prob.quantity_of_interest = json_in["probs"][i]["quantity_of_interest"];
+    prob.is_cell_data = json_in["probs"][i]["is_cell_data"];
+    prob.integrate = json_in["probs"][i]["integrate"];
+    
+    for (uint j = 0; j < json_in["probs"][i]["output_time_step"].size(); ++j)
+      prob.outputTimeStep.push_back( json_in["probs"][i]["output_time_step"][j] );
+    prob.out_filename = json_in["probs"][i]["output_filename"];
+    
+    inputs.probs.push_back(prob);
+  }
+  foutput.close();
 }

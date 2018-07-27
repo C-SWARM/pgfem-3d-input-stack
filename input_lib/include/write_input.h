@@ -32,3 +32,6 @@ void write_normal_in(const Input_Data inputs, const char *filebase);
 
 //writes periodic data to file using the data structure
 void write_periodic(const Input_Data inputs, const char *periodic_namebase);
+
+//writes output settings to file using the data structure
+void write_output_settings(const Input_Data inputs, const char *filebase);
