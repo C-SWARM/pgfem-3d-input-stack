@@ -159,9 +159,6 @@ static void write_dot_ic_file(const char *filename,
     return;  //return if there's no g_id IC data from IC files
   }
 
-
-  out << dom.initial_conditions[physics].size() << std::endl;
-
   //replaces values in g_id with their corresponding values in ic_replacements and writes ICs
   dom.initial_conditions[physics].write_replacements(inputs, physics, out);
 
@@ -279,96 +276,98 @@ static void write_cohesive_file(const char *filename,
 
 
 void write_PGFem3D_input_files(const Options &opt,
-			       const Header &header,
-			       const Domains &domains,
-			       const Input_Data inputs)
- {
+        const Header &header,
+        const Domains &domains,
+        const Input_Data inputs)
+{
+  mode_t mode = 0755;
+  if(opt.human_readable()){ //create directory at filebase/IC
+    std::string fileDir = opt.base_dname();
+    fileDir += "/IC";
+    mkdir(fileDir.c_str(), mode);
+  }
 
+  if(opt.human_readable() && inputs.bc_flag){ //create directory at filebase/BC
+    std::string fileDir = opt.base_dname();
+    fileDir += "/BC";
+    mkdir(fileDir.c_str(), mode);
+  }
+        
   Domains::const_iterator it0 = domains.begin();
   int i;
-  #pragma omp parallel num_threads(opt.nthreads()) shared(opt,header,domains,it0)
+#pragma omp parallel num_threads(opt.nthreads()) shared(opt,header,domains,it0)
   {
     Domains::const_iterator it;
     size_t dom_id;
-
-    #pragma omp for schedule(static,CHUNKSIZE) 
+    
+#pragma omp for schedule(static,CHUNKSIZE)
     for(dom_id = 0; dom_id < domains.size(); dom_id++){
-
+            
+      it = it0 + dom_id;
       
-      it = it0 + dom_id; 
+      std::stringstream filename;      
 
-      std::stringstream filename;
-       if(opt.human_readable()){
-       	  std::stringstream filename1;                      //.ic
-          std::stringstream filename2;                      //.bc
-          std::stringstream filename3;                      //.bcv
-
-          filename << opt.base_fname() << "_" << dom_id << ".in";
-          write_dot_in_file(filename.str().c_str(),header,*it);
-
-
-	  /*******************write ICs**********************/
-	 
-          //loop over number of physics (mech and thermal)
-	  for(int physics = 0; physics < inputs.number_of_physics; ++physics) {  
-	    std::stringstream filename1;   //.ic
-	    
-	    filename1 << opt.base_dname() << "/IC/"<< inputs.physics_list[physics].physics_name << "_" << dom_id << ".initial";
-	    
-	    if (physics == 0){     //create directory at filebase/IC during the first iteration
-	      std::string fileDir = opt.base_dname();
-	      fileDir += "/IC";
-	      mode_t mode = 0755;
-	      mkdir(fileDir.c_str(), mode);
-	    }
-	    
-	    //write IC data
-	    write_dot_ic_file(filename1.str().c_str(),*it,inputs,physics);
-	  }
-       
-
-	  /*******************write BCs**********************/
-	  if (!inputs.bc_flag){   //don't write any bc files if no bc.json files where provided
-	    continue;
-	  }
-          //loop over number of physics (mech and thermal)
-          for(int physics = 0; physics < inputs.number_of_physics; ++physics) {  
-	    std::stringstream filename2;     //.bc
-	    std::stringstream filename3;     //.bcv
-
-	    filename2 << opt.base_dname() << "/BC/"<< inputs.physics_list[physics].physics_name << "_" << dom_id << ".bc";
-	    if (physics == 0){     //create directory at filebase/BC during the first iteration
-	    std::string fileDir = opt.base_dname();
-	    fileDir += "/BC";
-	      mode_t mode = 0755;
-	      mkdir(fileDir.c_str(), mode);
-	    }
-
-	    //write BC data
-            write_dot_bc_file(filename2.str().c_str(),*it,physics);
-  
-	    if (dom_id == 0){  //bcv file is written only once
-	      filename3 << opt.base_dname() <<"/BC/"<< inputs.physics_list[physics].physics_name << ".bcv";
-	      write_dot_bcv_file(filename3.str().c_str(),inputs,physics);
-	    }
-	  } //ends physics loop
-       }
-       else {
-     		  filename << opt.base_fname() << "_" << dom_id << ".in";
-       		write_dot_in_file(filename.str().c_str(),header,*it);
-       }
-        if(opt.cohesive()){
-         filename << ".co";
-         write_cohesive_file(filename.str().c_str(),header,*it);
-       }
+      if(opt.human_readable()){
+        filename << opt.base_fname() << "_" << dom_id << ".in";
+        write_dot_in_file(filename.str().c_str(),header,*it);
+        
+        
+        /*******************write ICs**********************/
+        
+        //loop over number of physics (mech and thermal)
+        for(int physics = 0; physics < inputs.number_of_physics; ++physics) {
+          std::stringstream filename1;   //.ic
+          
+          if(it->initial_conditions[physics].size() == 0 && dom_id >0)
+            continue;
+          
+          filename1 << opt.base_dname() << "/IC/"<< inputs.physics_list[physics].physics_name << "_" << dom_id << ".initial";
+          
+          //write IC data
+          write_dot_ic_file(filename1.str().c_str(),*it,inputs,physics);
+        }
+        
+        
+        /*******************write BCs**********************/
+        if (!inputs.bc_flag){   //don't write any bc files if no bc.json files where provided
+          continue;
+        }
+                
+        //loop over number of physics (mech and thermal)
+        for(int physics = 0; physics < inputs.number_of_physics; ++physics) {
+          
+          if (dom_id == 0){  //bcv file is written only once
+            std::stringstream filename3;     //.bcv
+            filename3 << opt.base_dname() <<"/BC/"<< inputs.physics_list[physics].physics_name << ".bcv";
+            write_dot_bcv_file(filename3.str().c_str(),inputs,physics);
+          }
+          
+          if(it->boundary_conditions[physics].size() == 0)
+            continue;
+          
+          std::stringstream filename2;     //.bc          
+          filename2 << opt.base_dname() << "/BC/"<< inputs.physics_list[physics].physics_name << "_" << dom_id << ".bc";
+          
+          //write BC data
+          write_dot_bc_file(filename2.str().c_str(),*it,physics);
+        } //ends physics loop
+      }
+      else {
+        filename << opt.base_fname() << "_" << dom_id << ".in";
+        write_dot_in_file(filename.str().c_str(),header,*it);
+      }
+      if(opt.cohesive()){
+        filename << ".co";
+        write_cohesive_file(filename.str().c_str(),header,*it);
+      }
     } //ends domain.size() loop
-
+    
     if (inputs.bc_flag)
       std::cout << "wrote to " << domains.size() << " BC files" << std::endl;
-
+    
     if (inputs.ic_flag)
       std::cout << "wrote to " << domains.size() << " IC files" << std::endl;
     else
       std::cout << "Warning: No initial.json file provided. Using default values" << std::endl;
-   } //ends pragma
- }
+  } //ends pragma
+}
