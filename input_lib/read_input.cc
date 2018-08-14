@@ -224,33 +224,34 @@ void read_material_properties(Input_Data &inputs)
 
   fmaterial_mat >> json_in;
 
-  if (!(json_in["number_of_materials"].is_null())) {  //use default if missing
+  if (json_in["number_of_materials"].is_null())           //optional parameter
+    inputs.number_of_materials = json_in["materials"].size();
+  else{
+    //if size is given, make sure that there are that many elements in the file
+    assert (json_in["number_of_materials"] == json_in["materials"].size()
+      && "material file: number_of_materials doesn't equal elements in materials list");
     inputs.number_of_materials = json_in["number_of_materials"];
   }
 
   //read volume fraction
-  if (!(json_in["number_of_volume_fraction"].is_null())) {
+  if (json_in["number_of_volume_fraction"].is_null())     //optional parameter
+    inputs.number_of_volume_fraction = json_in["volume_fraction"].size();
+  else{
     //if size is given, make sure that there are that many elements in the file
     assert (json_in["number_of_volume_fraction"] == json_in["volume_fraction"].size() 
 	    && "material file: number_of_volume_fraction doesn't match number of volume_fraction elements");
     inputs.number_of_volume_fraction = json_in["number_of_volume_fraction"];
   }
-  else {
-    inputs.number_of_volume_fraction = json_in["volume_fraction"].size();  //defualt to number of elements
-  }
 
-  for (int i = 0; i < inputs.number_of_volume_fraction; ++i) {
+  for (int i = 0; i < inputs.number_of_volume_fraction; ++i)
     inputs.volume_fraction.push_back(json_in["volume_fraction"][i]);
-  }
 
   //set inertial density for each material
   for (int mat = 0; mat < inputs.number_of_materials; ++mat) {  //loop over # of materials
-    if (json_in["density"][mat].is_null()) {  //set to 0 if not provided for that material
+    if (json_in["density"][mat].is_null()) //set to 0 if not provided for that material
       inputs.density.push_back(0);
-    }
-    else{
+    else
       inputs.density.push_back(json_in["density"][mat]);
-    }
   }
 
   if (!(json_in["number_of_regions_to_set_material"].is_null())) {
@@ -259,9 +260,8 @@ void read_material_properties(Input_Data &inputs)
 	    && "material file: number_of_regions_to_set_material doesn't match number of material_regions elements");
     inputs.number_of_regions_to_set_material = json_in["number_of_regions_to_set_material"];
   }
-  else {
+  else
     inputs.number_of_regions_to_set_material = json_in["material_regions"].size();
-  }
 
   for (int i = 0; i < inputs.number_of_regions_to_set_material; ++i) {
 
@@ -302,9 +302,8 @@ void read_material_properties(Input_Data &inputs)
 	    && "material file: number_of_bases doesn't match number of basis_vectors elements");
     inputs.number_of_bases = json_in["number_of_bases"];
   }
-  else {
+  else
     inputs.number_of_bases = json_in["basis_vectors"].size();  //default to number of elements
-  }
 
   for (int i = 0; i < inputs.number_of_bases; ++i) {
     Basis_Vector basis_vector;
@@ -321,14 +320,12 @@ void read_material_properties(Input_Data &inputs)
     HR_Material material;
 
     //check if ID was provided. Otherwise keep it as its default value
-    if (!json_in["materials"][mat]["ID"].is_null()) {
+    if (!json_in["materials"][mat]["ID"].is_null())
       material.ID = json_in["materials"][mat]["ID"];
-    }
 
     //check if name was provided. Otherwise set it equal to ID
-    if (!json_in["materials"][mat]["name"].is_null()) {
+    if (!json_in["materials"][mat]["name"].is_null())
       material.name = json_in["materials"][mat]["name"];
-    }
     else{
       //found at: http://www.cplusplus.com/articles/D9j2Nwbp/
       ostringstream convert_int_to_string;  
@@ -361,31 +358,83 @@ void read_material_properties(Input_Data &inputs)
       material.mooney_rivlin[0] = json_in["materials"][mat]["mooney_rivlin"][0];
       material.mooney_rivlin[1] = json_in["materials"][mat]["mooney_rivlin"][1];
     }
-    if (!json_in["materials"][mat]["sig"].is_null()) {
+    if (!json_in["materials"][mat]["sig"].is_null())
       material.sig = json_in["materials"][mat]["sig"];
-    }
-    if (!json_in["materials"][mat]["strain_energy_function_vol"].is_null()) {
+    if (!json_in["materials"][mat]["strain_energy_function_vol"].is_null())
       material.strain_energy_function_vol = json_in["materials"][mat]["strain_energy_function_vol"];
-    }
-    if (!json_in["materials"][mat]["strain_energy_function_dev"].is_null()) {
+    if (!json_in["materials"][mat]["strain_energy_function_dev"].is_null())
       material.strain_energy_function_dev = json_in["materials"][mat]["strain_energy_function_dev"];
-    }
+
 
     //Energy equation data
-    if (!json_in["materials"][mat]["heat_capacity"].is_null()) {
+    if (!json_in["materials"][mat]["heat_capacity"].is_null())
       material.heat_capacity = json_in["materials"][mat]["heat_capacity"];
-    }
-    if (!json_in["materials"][mat]["thermal_conductivity"].is_null()) {
-      for (int i = 0; i < 9; ++i) {
-	material.thermal_conductivity[i] = json_in["materials"][mat]["thermal_conductivity"][i];
-      }
-    }
-    if (!json_in["materials"][mat]["fraction_of_heat_from_mechanical"].is_null()) {
+
+    if (!json_in["materials"][mat]["thermal_conductivity"].is_null())
+      for (int i = 0; i < 9; ++i)
+	      material.thermal_conductivity[i] = json_in["materials"][mat]["thermal_conductivity"][i];
+	
+    if (!json_in["materials"][mat]["fraction_of_heat_from_mechanical"].is_null())
       material.FHS_MW = json_in["materials"][mat]["fraction_of_heat_from_mechanical"];
-    }
+
+
+    //Chemestry material data
+    if (!json_in["materials"][mat]["molecularWeights"].is_null())
+      material.molecularWeights = json_in["materials"][mat]["molecularWeights"];
+    if (!json_in["materials"][mat]["initialMassFractions"].is_null())
+      material.initialMassFractions = json_in["materials"][mat]["initialMassFractions"];
+    if (!json_in["materials"][mat]["initialVolumeFractions"].is_null())
+      material.initialVolumeFractions = json_in["materials"][mat]["initialVolumeFractions"];
 
     inputs.material_list.push_back(material);    //add each material to the material list
   }
+  
+  //Chemestry data
+  if (json_in["nReactions"].is_null())
+    inputs.nReactions = json_in["reactions"].size();  //default to number of elements
+  else{
+    //if size is given, make sure that there are that many elements in the file
+    assert (json_in["nReactions"] == json_in["reactions"].size()
+	    && "material file: number of reactions doesn't match amount of reactions elements");
+    inputs.nReactions = json_in["nReactions"];
+  }
+  
+  if (!json_in["rho_mixture"].is_null())
+    inputs.rho_mixture = json_in["rho_mixture"];
+  if (!json_in["diffusivityCoefficient"].is_null())
+    inputs.diffusivityCoefficient = json_in["diffusivityCoefficient"];
+  if (!json_in["diffActivationEnergyByR"].is_null())
+    inputs.diffActivationEnergyByR = json_in["diffActivationEnergyByR"];
+  if (!json_in["bcHeatTime"].is_null())
+    inputs.bcHeatTime = json_in["bcHeatTime"];
+
+  for (uint i = 0; i < inputs.nReactions; ++i){
+    Reaction reaction;
+    
+    if (!json_in["reactions"][i]["reactionCoefficients"].is_null())
+      reaction.reactionCoefficients = json_in["reactions"][i]["reactionCoefficients"];
+    if (!json_in["reactions"][i]["oneByEquiliReactionCoefficients"].is_null())
+      reaction.oneByEquiliReactionCoefficients = json_in["reactions"][i]["oneByEquiliReactionCoefficients"];
+    if (!json_in["reactions"][i]["temperatureExponents"].is_null())
+      reaction.temperatureExponents = json_in["reactions"][i]["temperatureExponents"];
+    if (!json_in["reactions"][i]["heatReactions"].is_null())
+      reaction.heatReactions = json_in["reactions"][i]["heatReactions"];
+    if (!json_in["reactions"][i]["activationEnergyByR"].is_null())
+      reaction.activationEnergyByR = json_in["reactions"][i]["activationEnergyByR"];
+    
+    assert((json_in["reactions"][i]["stoichiometricConstants"].size() == (uint)inputs.number_of_materials) && 
+           "material file: stoichiometricConstantsdoesn't match number of materials");
+    assert((json_in["reactions"][i]["speciesExponents"].size() == (uint)inputs.number_of_materials) && 
+           "material file: speciesExponents doesn't match number of materials");
+    
+    for (int mat = 0; mat < inputs.number_of_materials; ++mat){
+      reaction.stoichiometricConstants.push_back( json_in["reactions"][i]["stoichiometricConstants"][mat] );
+      reaction.speciesExponents.push_back( json_in["reactions"][i]["speciesExponents"][mat] );
+    }
+
+    inputs.reaction_list.push_back(reaction);
+  }
+  //end Chemestry data
 
   fmaterial_mat.close();
 }

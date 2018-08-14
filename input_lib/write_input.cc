@@ -99,43 +99,72 @@ void write_material_properties(const Input_Data inputs, const char *filebase)
     case 0:  //momentum equataion data
       for (const auto& mat : inputs.material_list) {  //loop through each material
 
-	fmaterial << mat.youngs_modulus[0] << " ";
-	fmaterial << mat.youngs_modulus[1] << " ";
-	fmaterial << mat.youngs_modulus[2] << endl;
+        fmaterial << mat.youngs_modulus[0] << " ";
+        fmaterial << mat.youngs_modulus[1] << " ";
+        fmaterial << mat.youngs_modulus[2] << endl;
 
-	fmaterial << mat.shear_modulus[0] << " ";
-	fmaterial << mat.shear_modulus[1] << " ";
-	fmaterial << mat.shear_modulus[2] << endl;
+        fmaterial << mat.shear_modulus[0] << " ";
+        fmaterial << mat.shear_modulus[1] << " ";
+        fmaterial << mat.shear_modulus[2] << endl;
 
-	fmaterial << mat.poissons_ratio[0] << " ";
-	fmaterial << mat.poissons_ratio[1] << " ";
-	fmaterial << mat.poissons_ratio[2] << endl;
+        fmaterial << mat.poissons_ratio[0] << " ";
+        fmaterial << mat.poissons_ratio[1] << " ";
+        fmaterial << mat.poissons_ratio[2] << endl;
 
-	fmaterial << mat.coefficient_of_thermal_expansion[0] << " ";
-	fmaterial << mat.coefficient_of_thermal_expansion[1] << " ";
-	fmaterial << mat.coefficient_of_thermal_expansion[2] << endl;
+        fmaterial << mat.coefficient_of_thermal_expansion[0] << " ";
+        fmaterial << mat.coefficient_of_thermal_expansion[1] << " ";
+        fmaterial << mat.coefficient_of_thermal_expansion[2] << endl;
 
-	fmaterial << mat.sig << endl;
-	fmaterial << mat.strain_energy_function_dev << " ";
-	fmaterial << mat.strain_energy_function_vol << endl << endl;
+        fmaterial << mat.sig << endl;
+        fmaterial << mat.strain_energy_function_dev << " ";
+        fmaterial << mat.strain_energy_function_vol << endl << endl;
       }
       break;
 
     case 1:  //energy equation data
       for (const auto& mat : inputs.material_list) {  //loop through each material
-	fmaterial << mat.heat_capacity << endl << endl;
+        fmaterial << mat.heat_capacity << endl << endl;
 
-	//print thermal conductivity
-	fmaterial << mat.thermal_conductivity[0] << " ";
-	fmaterial << mat.thermal_conductivity[1] << " ";
-	fmaterial << mat.thermal_conductivity[2] << endl;
-	fmaterial << mat.thermal_conductivity[3] << " ";
-	fmaterial << mat.thermal_conductivity[4] << " ";
-	fmaterial << mat.thermal_conductivity[5] << endl;
-	fmaterial << mat.thermal_conductivity[6] << " ";
-	fmaterial << mat.thermal_conductivity[7] << " ";
-	fmaterial << mat.thermal_conductivity[8] << endl << endl;
+        //print thermal conductivity
+        fmaterial << mat.thermal_conductivity[0] << " ";
+        fmaterial << mat.thermal_conductivity[1] << " ";
+        fmaterial << mat.thermal_conductivity[2] << endl;
+        fmaterial << mat.thermal_conductivity[3] << " ";
+        fmaterial << mat.thermal_conductivity[4] << " ";
+        fmaterial << mat.thermal_conductivity[5] << endl;
+        fmaterial << mat.thermal_conductivity[6] << " ";
+        fmaterial << mat.thermal_conductivity[7] << " ";
+        fmaterial << mat.thermal_conductivity[8] << endl << endl;
         fmaterial << mat.FHS_MW << endl << endl;
+      }
+      break;
+    case 2:  //chemistry data
+      fmaterial << inputs.number_of_materials << endl;
+      fmaterial << inputs.nReactions << endl;
+      fmaterial << inputs.rho_mixture << endl;
+      fmaterial << inputs.diffusivityCoefficient << endl;
+      fmaterial << inputs.diffActivationEnergyByR << endl;
+      fmaterial << inputs.bcHeatTime << endl;
+    
+      //write reaction data
+      for (const auto& reaction : inputs.reaction_list){
+        fmaterial << endl << reaction.reactionCoefficients << endl;
+        fmaterial << reaction.oneByEquiliReactionCoefficients << endl;
+        fmaterial << reaction.temperatureExponents << endl;
+        fmaterial << reaction.heatReactions << endl;
+        fmaterial << reaction.activationEnergyByR << endl;
+      
+        for (int mat = 0; mat < inputs.number_of_materials; ++mat){
+          fmaterial << reaction.stoichiometricConstants[mat] << " ";
+          fmaterial << reaction.speciesExponents[mat] << endl;
+        }
+      }
+    
+      //write material-specific data
+      for (const auto& mat : inputs.material_list) {  //loop through each material
+        fmaterial << endl << mat.molecularWeights << " ";
+        fmaterial << mat.initialMassFractions <<  " ";
+        fmaterial << mat.initialVolumeFractions;
       }
       break;
     }

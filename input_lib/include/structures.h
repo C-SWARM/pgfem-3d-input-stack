@@ -13,14 +13,15 @@ struct Cohesive_Potential;
 struct TypeID;
 struct Prob;
 struct NodeDomID;
+struct Reaction;
 
 //contains only non physics-specific data and a list of physics structs
 struct Input_Data{
   /*****************optional file flags**************/
   //Used to determine whether to create BC files
   //(pgfem reads BCs from .in file if there's no BC directory)
-  bool bc_flag = false;  //set to true if a bc.json file exists
-  bool ic_flag = false;  //set to true if an ic.json file exists
+  bool bc_flag = false;    //set to true if a bc.json file exists
+  bool ic_flag = false;    //set to true if an ic.json file exists
 
 
   /*****************multiphysics_in data************/
@@ -80,7 +81,14 @@ struct Input_Data{
   std::vector<Basis_Vector> basis_vectors;
 
   std::vector<HR_Material> material_list;
-
+  
+  //chemical data
+  uint nReactions = 0;
+  int rho_mixture = 0;
+  int diffusivityCoefficient = 0;
+  int diffActivationEnergyByR = 0;
+  int bcHeatTime = 0;
+  std::vector<Reaction> reaction_list;
 
   /*****************timestep data***************/
   int number_of_time_steps = 0;
@@ -181,6 +189,23 @@ struct HR_Material{
   double heat_capacity = 0;
   double thermal_conductivity[9] = {0};
   double FHS_MW = 0.8; // fraction of heat source from mechanical work
+  
+  //Chemical
+  double molecularWeights = 0;
+  double initialMassFractions = 0;
+  double initialVolumeFractions = 0;
+};
+
+struct Reaction{
+  double reactionCoefficients = 0;
+  double oneByEquiliReactionCoefficients = 0;
+  double temperatureExponents = 0;
+  double heatReactions = 0;
+  double activationEnergyByR = 0;
+
+  //material_list.size():
+  std::vector<double> stoichiometricConstants;
+  std::vector<double> speciesExponents;
 };
 
 struct Cohesive_Potential{
