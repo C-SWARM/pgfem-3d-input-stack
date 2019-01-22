@@ -613,13 +613,21 @@ void read_initial_conditions (Input_Data &inputs)
     if (!fIC.good()) {    //file doesn't exist
       cout << IC_file << " not found" << endl;
 
-      //set default inertial_density to 0 for each momentum material
-      for (int mat = 0; mat < inputs.number_of_materials; ++mat)
-	if (inputs.physics_list[phys].equation_id == 0)
-	  inputs.physics_list[phys].inertial_density.push_back(0);
+      switch (inputs.physics_list[phys].equation_id) {
+      case 0: //momentum eqauation
+        //set default inertial_density to 0 for each momentum material
+        for (int mat = 0; mat < inputs.number_of_materials; ++mat)
+          inputs.physics_list[phys].inertial_density.push_back(0);
 
+        break;
+
+      case 1: //thermal equation
+        inputs.physics_list[phys].reference_value = 300;
+        break;
+      }
       continue;
     }
+
     inputs.ic_flag = true;   //at least 1 ic.json file exists
     
     json json_in;
@@ -632,19 +640,23 @@ void read_initial_conditions (Input_Data &inputs)
 
       //set inertial density for each material
       for (int mat = 0; mat < inputs.number_of_materials; ++mat) {  //loop over # of materials
-	if (json_in["inertial_density"][mat].is_null()) {  //set to 0 if not provided for that material
-	  inputs.physics_list[phys].inertial_density.push_back(0);
-	}
-	else{
-	  inputs.physics_list[phys].inertial_density.push_back(json_in["inertial_density"][mat]);
-	}
+        if (json_in["inertial_density"][mat].is_null()) {  //set to 0 if not provided for that material
+           inputs.physics_list[phys].inertial_density.push_back(0);
+        }
+        else{
+          inputs.physics_list[phys].inertial_density.push_back(json_in["inertial_density"][mat]);
+        }
       }
 
       inputs.physics_list[phys].reference_value = 0;      //set default displacement ref value
       break;
 
-    case 1:                                               //thermal equation
-      inputs.physics_list[phys].reference_value = 300;    //set default energy ref value
+    case 1:                                              //thermal equation
+      if (json_in["reference value"].is_null())     //set to 0 if not provided for that material
+        inputs.physics_list[phys].reference_value = 300;
+      else
+        inputs.physics_list[phys].reference_value = json_in["reference value"];
+
       break;
     }
 
@@ -656,32 +668,32 @@ void read_initial_conditions (Input_Data &inputs)
       //1st IC parameter:
       //optional string input for geometry type
       if (json_in["g_id"][i][0].is_string()) {
-	if (json_in["g_id"][i][0] == "vertex")
-	  g_id_entry.push_back(1);
-	else if (json_in["g_id"][i][0] == "curve")
-	  g_id_entry.push_back(2);
-	else if (json_in["g_id"][i][0] == "surface")
-      	g_id_entry.push_back(3);
-	else if (json_in["g_id"][i][0] == "region")
-	  g_id_entry.push_back(4);
-	else if (json_in["g_id"][i][0] == "patch")
-	  g_id_entry.push_back(5);
-	else if (json_in["g_id"][i][0] == "interface")
-	  g_id_entry.push_back(7);
-	else{
-	  cerr << "Invalid g_id geometry type\n";
-	  cerr << "First element in material regions must be:\n";
-	  cerr << "\"vertex\", \"curve\", \"surface\", \"region\", \"patch\", or \"interface\" or the integer equivalent\n";
-      	exit(1);
-	}
+        if (json_in["g_id"][i][0] == "vertex")
+          g_id_entry.push_back(1);
+        else if (json_in["g_id"][i][0] == "curve")
+          g_id_entry.push_back(2);
+        else if (json_in["g_id"][i][0] == "surface")
+          g_id_entry.push_back(3);
+        else if (json_in["g_id"][i][0] == "region")
+          g_id_entry.push_back(4);
+        else if (json_in["g_id"][i][0] == "patch")
+          g_id_entry.push_back(5);
+        else if (json_in["g_id"][i][0] == "interface")
+          g_id_entry.push_back(7);
+        else{
+          cerr << "Invalid g_id geometry type\n";
+          cerr << "First element in material regions must be:\n";
+          cerr << "\"vertex\", \"curve\", \"surface\", \"region\", \"patch\", or \"interface\" or the integer equivalent\n";
+          exit(1);
+        }
       }
       //original number input
       else
-	g_id_entry.push_back(json_in["g_id"][i][0]);
+        g_id_entry.push_back(json_in["g_id"][i][0]);
 
       //other IC parameters:
       for (uint j = 1; j < json_in["g_id"][i].size(); ++j) {         //loop for each value in each entry
-	g_id_entry.push_back(json_in["g_id"][i][j]);
+        g_id_entry.push_back(json_in["g_id"][i][j]);
       }
       
       inputs.physics_list[phys].g_id.push_back(g_id_entry);
