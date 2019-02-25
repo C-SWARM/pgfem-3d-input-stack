@@ -88,6 +88,7 @@ struct Input_Data{
   int diffusivityCoefficient = 0;
   int diffActivationEnergyByR = 0;
   int bcHeatTime = 0;
+  double heatSource = 0.0;
   std::vector<Reaction> reaction_list;
 
   /*****************timestep data***************/
@@ -194,6 +195,7 @@ struct HR_Material{
   double molecularWeights = 0;
   double initialMassFractions = 0;
   double initialVolumeFractions = 0;
+  double formationHeat = 0;
 };
 
 struct Reaction{

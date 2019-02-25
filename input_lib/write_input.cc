@@ -137,6 +137,7 @@ void write_material_properties(const Input_Data inputs, const char *filebase)
         fmaterial << mat.thermal_conductivity[8] << endl << endl;
         fmaterial << mat.FHS_MW << endl << endl;
       }
+      fmaterial << inputs.heatSource << endl;
       break;
     case 2:  //chemistry data
       fmaterial << inputs.number_of_materials << endl;
@@ -164,7 +165,8 @@ void write_material_properties(const Input_Data inputs, const char *filebase)
       for (const auto& mat : inputs.material_list) {  //loop through each material
         fmaterial << endl << mat.molecularWeights << " ";
         fmaterial << mat.initialMassFractions <<  " ";
-        fmaterial << mat.initialVolumeFractions;
+        fmaterial << mat.initialVolumeFractions << " ";
+        fmaterial << mat.formationHeat;
       }
       break;
     }

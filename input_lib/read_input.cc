@@ -385,6 +385,9 @@ void read_material_properties(Input_Data &inputs)
       material.initialMassFractions = json_in["materials"][mat]["initialMassFractions"];
     if (!json_in["materials"][mat]["initialVolumeFractions"].is_null())
       material.initialVolumeFractions = json_in["materials"][mat]["initialVolumeFractions"];
+    if (!json_in["materials"][mat]["formationHeat"].is_null())
+      material.formationHeat = json_in["materials"][mat]["formationHeat"];
+      
 
     inputs.material_list.push_back(material);    //add each material to the material list
   }
@@ -407,6 +410,10 @@ void read_material_properties(Input_Data &inputs)
     inputs.diffActivationEnergyByR = json_in["diffActivationEnergyByR"];
   if (!json_in["bcHeatTime"].is_null())
     inputs.bcHeatTime = json_in["bcHeatTime"];
+  if (!json_in["heat_source"].is_null())
+    inputs.heatSource = json_in["heat_source"];
+  if (!json_in["heatSource"].is_null())    //intentional duplicate for multiple spellings
+    inputs.heatSource = json_in["heatSource"];
 
   for (uint i = 0; i < inputs.nReactions; ++i){
     Reaction reaction;
