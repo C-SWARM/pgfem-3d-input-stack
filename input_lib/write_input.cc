@@ -150,10 +150,12 @@ void write_material_properties(const Input_Data inputs, const char *filebase)
       //write reaction data
       for (const auto& reaction : inputs.reaction_list){
         fmaterial << endl << reaction.reactionCoefficients << endl;
+        fmaterial << endl << reaction.bwdReactionCoefficients << endl;
         fmaterial << reaction.oneByEquiliReactionCoefficients << endl;
         fmaterial << reaction.temperatureExponents << endl;
         fmaterial << reaction.heatReactions << endl;
         fmaterial << reaction.activationEnergyByR << endl;
+        fmaterial << reaction.bwdActivationEnergyByR << endl;
       
         for (int mat = 0; mat < inputs.number_of_materials; ++mat){
           fmaterial << reaction.stoichiometricConstants[mat] << " ";

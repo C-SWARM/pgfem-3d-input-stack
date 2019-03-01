@@ -200,10 +200,12 @@ struct HR_Material{
 
 struct Reaction{
   double reactionCoefficients = 0;
+  double bwdReactionCoefficients = 0;
   double oneByEquiliReactionCoefficients = 0;
   double temperatureExponents = 0;
   double heatReactions = 0;
   double activationEnergyByR = 0;
+  double bwdActivationEnergyByR = 0;
 
   //material_list.size():
   std::vector<double> stoichiometricConstants;

@@ -420,6 +420,8 @@ void read_material_properties(Input_Data &inputs)
     
     if (!json_in["reactions"][i]["reactionCoefficients"].is_null())
       reaction.reactionCoefficients = json_in["reactions"][i]["reactionCoefficients"];
+    if (!json_in["reactions"][i]["bwdReactionCoefficients"].is_null())
+      reaction.bwdReactionCoefficients = json_in["reactions"][i]["bwdReactionCoefficients"];
     if (!json_in["reactions"][i]["oneByEquiliReactionCoefficients"].is_null())
       reaction.oneByEquiliReactionCoefficients = json_in["reactions"][i]["oneByEquiliReactionCoefficients"];
     if (!json_in["reactions"][i]["temperatureExponents"].is_null())
@@ -428,6 +430,8 @@ void read_material_properties(Input_Data &inputs)
       reaction.heatReactions = json_in["reactions"][i]["heatReactions"];
     if (!json_in["reactions"][i]["activationEnergyByR"].is_null())
       reaction.activationEnergyByR = json_in["reactions"][i]["activationEnergyByR"];
+    if (!json_in["reactions"][i]["bwdActivationEnergyByR"].is_null())
+      reaction.bwdActivationEnergyByR = json_in["reactions"][i]["bwdActivationEnergyByR"];
     
     assert((json_in["reactions"][i]["stoichiometricConstants"].size() == (uint)inputs.number_of_materials) && 
            "material file: stoichiometricConstantsdoesn't match number of materials");
