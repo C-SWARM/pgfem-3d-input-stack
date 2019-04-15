@@ -33,6 +33,9 @@
 #include <time.h>
 #include <omp.h>
 
+#include <sys/stat.h>  // for mkdir etc
+#include <sys/errno.h> // for errno
+
 #define CHUNKSIZE  1
 
 #define METIS
@@ -626,6 +629,7 @@ static Widget set_button[NUM_COLORS], add_button[NUM_COLORS], del_button[NUM_COL
 
 static logic draw_nodes = YES;
 
+int make_path(const char *path, mode_t mode);
 
 static void
 draw_node(fe_node *node, int layer, EPixel color, int type, int msize);
@@ -838,7 +842,21 @@ void postpartition(long shared_nodes, long *part_nodes)
 
 
 //subroutine
-void mthread(long isolated, double old_profile, double new_profile, int mesh_type, int elem_degree, int renum_type, int output_type, logic elixir, EPixel white, EPixel black, EPixel colors[], char sifel_in_name[], int nthreads)
+void mthread(long isolated, 
+             double old_profile, 
+             double new_profile, 
+             int mesh_type, 
+             int elem_degree, 
+             int renum_type, 
+             int output_type, 
+             logic elixir, 
+             EPixel white, 
+             EPixel black, 
+             EPixel colors[], 
+             char sifel_in_name[],
+             const int print_map,
+             const char *map_filename,
+             int nthreads)
 {
 #pragma omp parallel num_threads(nthreads) firstprivate(elem_part,remote_elem,nd_con_nds,node_array,edge_array,face_array,quad_array,tetra_array,pyram_array,wedge_array,hexa_array,elem_node_global,msize,out_err_msg,active_out_file) private(num_elems,num_nodes,num_edges,num_faces,num_quads,num_tetras,num_pyrams,num_wedges,num_hexas,old_profile,new_profile,stdout) shared(elems,isolated,nodes,midnodes,edges,faces,quads,tetras,pyrams,wedges,hexas,nparts,node_part,node_cut,node_con_elems,node_num_elems,elem_cut,interface_last,renum,total_numbers,elixir,virtual_layers,node_global,draw_nodes,shared_partition,elem_global,nd_num_nodes,nd_con_nodes,output_type,elem_degree,renum_type,mesh_type,sifel_in_name,layer_obj,white,black,colors)
   { 
@@ -852,6 +870,7 @@ void mthread(long isolated, double old_profile, double new_profile, int mesh_typ
     logic shared0, remote;
 
     FILE *psifel_in_file = NULL;
+    FILE *map = NULL;
     char psifel_in_name[FILE_NAME_SIZE + 5], suffix[5], err_msg[256];
 
     fe_node *fe_Node = NULL, *fe_nd = NULL;
@@ -1549,7 +1568,16 @@ void mthread(long isolated, double old_profile, double new_profile, int mesh_typ
         sprintf(suffix, ".%ld", (long)part);
         strcat(psifel_in_name, suffix);
       }
-
+      
+      if(print_map){
+        char map_filename_n[2048];
+        sprintf(map_filename_n, "%s_%ld.map", map_filename, (long) part);
+        map = fopen(map_filename_n, "w");
+        if(map == NULL){
+          sprintf(err_msg, "File %s opening error", map_filename_n);
+          error_message(err_msg, FILE_OPEN_ERROR);          
+        }
+      }
 
       if((psifel_in_file = fopen(psifel_in_name, "w")) == NULL){
         sprintf(err_msg, "File %s opening error", psifel_in_name);
@@ -1578,6 +1606,8 @@ void mthread(long isolated, double old_profile, double new_profile, int mesh_typ
         }
       }
 
+      if(print_map)
+        fprintf(map, "%ld %ld\n\n", num_nodes, num_edges + num_faces + num_tetras + num_quads + num_hexas + num_pyrams + num_wedges);
 
       switch(mesh_type){
         case TRI_TETRA:
@@ -1640,6 +1670,9 @@ void mthread(long isolated, double old_profile, double new_profile, int mesh_typ
           }
           if(shared0 == NO && remote == NO)continue;
         }
+        
+        if(print_map)
+          fprintf(map, "%ld ", ii + 1);
 
         if(node_global == YES){
           if(fe_nd -> glob_id == 0)
@@ -1691,6 +1724,9 @@ void mthread(long isolated, double old_profile, double new_profile, int mesh_typ
       } // ends - fe_Node & i
 
 
+     if(print_map)  
+       fprintf(map, "\n\n");
+
       last_type = -1;
       elem_id = 0;
       for(i = 0; i < elems; i++){
@@ -1710,6 +1746,10 @@ void mthread(long isolated, double old_profile, double new_profile, int mesh_typ
 
         elem_id++;
         glob_elem_id = i + 1;
+        
+        if(print_map)  
+          fprintf(map, "%ld ", glob_elem_id);
+                      
         type = elem_type(glob_elem_id);                /* macro */
         if(last_type != type){
           if(fprintf(psifel_in_file, "\n") < 0)error_message(out_err_msg, FILE_WRITE_ERROR);
@@ -2111,12 +2151,16 @@ void mthread(long isolated, double old_profile, double new_profile, int mesh_typ
             break;
         }
         last_type = type;
+        
+        if(print_map)  
+          fprintf(map, "%ld %ld\n", entity -> type, entity -> property_id);
 
         remote_elem0[i] = 0;
       }
 
       fclose(psifel_in_file);
-
+      if(print_map)
+        fclose(map);
 
     } // ends - part
 
@@ -2125,7 +2169,7 @@ void mthread(long isolated, double old_profile, double new_profile, int mesh_typ
     free(remote_elem0);
     free(remote_node0);
     free(nd_array0);
-    if(node_array0!=NULL) 
+    if(node_array0!=NULL)
       free(node_array0);
 
 
@@ -2153,6 +2197,10 @@ int main(int argc, char **argv)
   FILE *t3d_out_file = NULL, L, *graph_file = NULL, *weight_file = NULL;
   FILE *sifel_in_file = NULL;
   char t3d_out_name[FILE_NAME_SIZE], sifel_in_name[FILE_NAME_SIZE], *token = NULL;
+
+  int print_map = 0;  
+  char map_filename[FILE_NAME_SIZE];
+  
   char err_msg[256], weight_name[FILE_NAME_SIZE];
   list *entity_list = NULL;
   entity *entity = NULL, *ent = NULL, *iface_ent = NULL;
@@ -2227,6 +2275,9 @@ int main(int argc, char **argv)
     fprintf(stderr, "         -il    number interface nodes last\n"); 
     fprintf(stderr, "         -nw    node weighting (mixed meshes only)\n"); 
     fprintf(stderr, "         -ew    element weighting\n"); 
+    fprintf(stderr, "         -map   print mapping files (global node and element IDs) [arg1], [arg2]\n");
+    fprintf(stderr, "                [arg1]: directory name\n");
+    fprintf(stderr, "                [arg2]: filebase name\n");
 #ifdef PAWBAL
     fprintf(stderr, "         -po    profile optimization (only together with -rn)\n"); 
 #endif
@@ -2350,6 +2401,29 @@ int main(int argc, char **argv)
 
       if(strlen(argv[argcc]) >= FILE_NAME_SIZE)error_message("Too long weight_file name", LONG_NAME_ERROR);
       strncpy(weight_name, argv[argcc++], FILE_NAME_SIZE);
+      continue;
+    }    
+    if(strcmp(argv[argcc], "-map") == 0){      
+      print_map = 1;
+      ++argcc;
+      
+      char map_filebase[FILE_NAME_SIZE];
+      char map_dir[FILE_NAME_SIZE];      
+
+      if(strlen(argv[argcc]) >= FILE_NAME_SIZE)error_message("Too long map directory name", LONG_NAME_ERROR);
+      strncpy(map_dir, argv[argcc], FILE_NAME_SIZE);
+      
+      ++argcc;
+
+      if(strlen(argv[argcc]) >= FILE_NAME_SIZE)error_message("Too long map file base name", LONG_NAME_ERROR);
+      strncpy(map_filebase, argv[argcc], FILE_NAME_SIZE);
+      
+      sprintf(map_filename, "%s/%s", map_dir, map_filebase);
+      
+      printf("Generate [%s]...\n", map_dir);
+      make_path(map_dir,0777);
+      
+      ++argcc;
       continue;
     }
 #ifdef PAWBAL
@@ -7210,7 +7284,22 @@ int main(int argc, char **argv)
 #ifdef METIS
   else{
     double tt4 = omp_get_wtime();
-    mthread(isolated, old_profile, new_profile, mesh_type, elem_degree, renum_type, output_type, elixir, white, black, colors, sifel_in_name, nthreads); 
+    mthread(isolated, 
+            old_profile, 
+            new_profile, 
+            mesh_type, 
+            elem_degree, 
+            renum_type, 
+            output_type, 
+            elixir, 
+            white, 
+            black, 
+            colors, 
+            sifel_in_name,
+            print_map, 
+            map_filename, 
+            nthreads);
+            
     double tt5 = omp_get_wtime();
     printf("Postpartition3 - parallelized = %f seconds\n", tt5-tt4);
   }   // ends - else
@@ -9162,5 +9251,77 @@ sort_array(long n, long *key, long *pos)
     }
     d /= 2;
   }
+}
+
+int make_dir(const char *path, mode_t mode)
+{
+  struct stat st;
+  int status = 0;
+
+  /* check the status of the file in path */
+  if(stat(path,&st) != 0){ /* file does not exist */
+
+    if(mkdir(path,mode) != 0 && errno != EEXIST){
+      /* The directory could not be created and the error is something
+     other than the file already existing */
+      status = -1;
+    }
+
+  } else if(!S_ISDIR(st.st_mode)){ /* file exists and is not a directory */
+    status = -1;
+  }
+  return status;
+}
+
+int make_path(const char *path, mode_t mode)
+{
+
+  struct stat st;
+  char *pp;
+  char *sp;
+  int status, full_path;
+  char *copypath = malloc(sizeof(char)*(strlen(path)+1));
+  strcpy(copypath,path);
+
+  status = 0;
+  full_path = 0;
+  pp = copypath;
+
+  /* first check to see if the path up to the last dir exists */
+  if((sp = strrchr(pp, '/')) == NULL){ /* path in current directory */
+    full_path = 1;
+  } else if(sp != pp){
+    /* not root dir */
+    *sp = '\0';
+    if(stat(copypath,&st) == 0 && S_ISDIR(st.st_mode)){
+      full_path = 1;
+    }
+    *sp = '/';
+  }
+
+  switch (full_path){
+  case 0:
+    while (status == 0 && (sp = strchr(pp, '/')) != 0){
+      if (sp != pp){
+    /* Neither root nor double slash in path */
+
+    *sp = '\0'; /* replace '/' with '\0' to terminate the string */
+
+    status = make_dir(copypath, mode);
+
+    *sp = '/'; /* replace the '/' character to regain the full string */
+      }
+      pp = sp + 1; /* advance the pointer to after the '/' */
+    }
+    /* Drop through to case 1 */
+
+  case 1:
+    if (status == 0)
+      status = make_dir(path, mode);
+    free(copypath);
+    break;
+  }
+
+  return (status);
 }
 
