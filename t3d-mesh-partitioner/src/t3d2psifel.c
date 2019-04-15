@@ -1747,6 +1747,7 @@ void mthread(long isolated,
         elem_id++;
         glob_elem_id = i + 1;
         
+        int mid_node_no = 0;
         if(print_map)  
           fprintf(map, "%ld ", glob_elem_id);
                       
@@ -1791,6 +1792,7 @@ void mthread(long isolated,
                 error_message(out_err_msg, FILE_WRITE_ERROR);
             }
             if(elem_degree == QUADRATIC){
+              mid_node_no = 1;
               if(fe_edge -> midnd[0] != NULL)
                 midnd_id[0] = fe_edge -> midnd[0] -> id;
               else
@@ -1843,6 +1845,7 @@ void mthread(long isolated,
                 error_message(out_err_msg, FILE_WRITE_ERROR);
             }
             if(elem_degree == QUADRATIC){
+              mid_node_no = 3;
               for(j = 0; j < 3; j++)midnd_id[j] = fe_face -> midnd[j] -> id;
 
               if(fprintf(psifel_in_file, " %9ld %9ld %9ld %9ld %9ld %9ld %9ld %4d %9ld %9ld %9ld %9ld %9ld\n", 
@@ -1893,6 +1896,7 @@ void mthread(long isolated,
                 error_message(out_err_msg, FILE_WRITE_ERROR);
             }
             if(elem_degree == QUADRATIC){
+              mid_node_no = 4;
               for(j = 0; j < 4; j++){
                 if(fe_quad -> midnd[j] != NULL)
                   midnd_id[j] = fe_quad -> midnd[j] -> id;
@@ -1955,6 +1959,7 @@ void mthread(long isolated,
                 error_message(out_err_msg, FILE_WRITE_ERROR);
             }
             if(elem_degree == QUADRATIC){
+              mid_node_no = 6;
               for(j = 0; j < 6; j++){
                 orig_id = fe_tetra -> midnd[j] -> id;
                 midnd_id[j] = node_array0[orig_id - 1].id;
@@ -2015,6 +2020,7 @@ void mthread(long isolated,
                 error_message(out_err_msg, FILE_WRITE_ERROR);
             }
             if(elem_degree == QUADRATIC){
+              mid_node_no = 8;
               for(j = 0; j < 8; j++){
                 orig_id = fe_pyram -> midnd[j] -> id;
                 midnd_id[j] = node_array0[orig_id - 1].id;
@@ -2075,6 +2081,7 @@ void mthread(long isolated,
                 error_message(out_err_msg, FILE_WRITE_ERROR);
             }
             if(elem_degree == QUADRATIC){
+              mid_node_no = 9;
               for(j = 0; j < 9; j++){
                 if(fe_wedge -> midnd[j] != NULL){
                   orig_id = fe_wedge -> midnd[j] -> id;
@@ -2140,6 +2147,7 @@ void mthread(long isolated,
                 error_message(out_err_msg, FILE_WRITE_ERROR);
             }
             if(elem_degree == QUADRATIC){
+              mid_node_no = 12;
               for(j = 0; j < 12; j++){
                 if(fe_hexa -> midnd[j] != NULL){
                   orig_id = fe_hexa -> midnd[j] -> id;
@@ -2163,7 +2171,7 @@ void mthread(long isolated,
         last_type = type;
         
         if(print_map)  
-          fprintf(map, "%ld %ld\n", entity -> type, entity -> property_id);
+          fprintf(map, "%ld %ld\n", entity -> type + mid_node_no, entity -> property_id);
 
         remote_elem0[i] = 0;
       }
