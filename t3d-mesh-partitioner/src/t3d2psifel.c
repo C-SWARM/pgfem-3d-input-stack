@@ -906,7 +906,7 @@ void mthread(long isolated,
     }
 
     fe_node *node_array0 = NULL;
-    if((node_array0 = (struct fe_node *)calloc(nodes, sizeof(struct fe_node))) == NULL)
+    if((node_array0 = (struct fe_node *)calloc(nodes + midnodes, sizeof(struct fe_node))) == NULL)
       error_message("Memory allocation error", MEMORY_ERROR);
 
 
@@ -915,7 +915,7 @@ void mthread(long isolated,
       elem_part0[i] = elem_part[i];
       remote_elem0[i] = remote_elem[i];
     }
-    for(i = 0; i < nodes; i++)
+    for(i = 0; i < nodes + midnodes; i++)
       memcpy(node_array0 + i, node_array + i, sizeof(struct fe_node));
 
 
@@ -1955,7 +1955,10 @@ void mthread(long isolated,
                 error_message(out_err_msg, FILE_WRITE_ERROR);
             }
             if(elem_degree == QUADRATIC){
-              for(j = 0; j < 6; j++)midnd_id[j] = fe_tetra -> midnd[j] -> id;
+              for(j = 0; j < 6; j++){
+                orig_id = fe_tetra -> midnd[j] -> id;
+                midnd_id[j] = node_array0[orig_id - 1].id;
+              } 
 
               if(fprintf(psifel_in_file, " %9ld %9ld %9ld %9ld %9ld %9ld %9ld %9ld %9ld %9ld %9ld %4d %9ld %9ld %9ld %9ld %9ld %9ld %4d %4d %4d %4d\n", 
                     glob_elem_id, nd_id[0], nd_id[1], nd_id[2], nd_id[3],
@@ -2012,7 +2015,10 @@ void mthread(long isolated,
                 error_message(out_err_msg, FILE_WRITE_ERROR);
             }
             if(elem_degree == QUADRATIC){
-              for(j = 0; j < 8; j++)midnd_id[j] = fe_pyram -> midnd[j] -> id;
+              for(j = 0; j < 8; j++){
+                orig_id = fe_pyram -> midnd[j] -> id;
+                midnd_id[j] = node_array0[orig_id - 1].id;
+              }
 
               if(fprintf(psifel_in_file, " %9ld %9ld %9ld %9ld %9ld %9ld %9ld %9ld %9ld %9ld %9ld %9ld %9ld %9ld %4d %9ld %9ld %9ld %9ld %9ld %9ld %9ld %4d %4d %4d %4d %4d\n", 
                     glob_elem_id, nd_id[0], nd_id[1], nd_id[2], nd_id[3], nd_id[4],
@@ -2070,8 +2076,10 @@ void mthread(long isolated,
             }
             if(elem_degree == QUADRATIC){
               for(j = 0; j < 9; j++){
-                if(fe_wedge -> midnd[j] != NULL)
-                  midnd_id[j] = fe_wedge -> midnd[j] -> id;
+                if(fe_wedge -> midnd[j] != NULL){
+                  orig_id = fe_wedge -> midnd[j] -> id;
+                  midnd_id[j] = node_array0[orig_id - 1].id;
+                }
                 else
                   midnd_id[j] = 0;
               }
@@ -2133,8 +2141,10 @@ void mthread(long isolated,
             }
             if(elem_degree == QUADRATIC){
               for(j = 0; j < 12; j++){
-                if(fe_hexa -> midnd[j] != NULL)
-                  midnd_id[j] = fe_hexa -> midnd[j] -> id;
+                if(fe_hexa -> midnd[j] != NULL){
+                  orig_id = fe_hexa -> midnd[j] -> id;
+                  midnd_id[j] = node_array0[orig_id - 1].id;
+                }
                 else
                   midnd_id[j] = 0;
               }
