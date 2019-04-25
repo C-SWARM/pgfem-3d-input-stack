@@ -1726,6 +1726,8 @@ void mthread(long isolated,
 
      if(print_map)  
        fprintf(map, "\n\n");
+       
+      int nne = 0; 
 
       last_type = -1;
       elem_id = 0;
@@ -1785,6 +1787,8 @@ void mthread(long isolated,
               for(j = 0; j < 2; j++)nd_id[j] = abs(fe_edge -> node[j] -> glob_id);
 
             if(elem_global == NO)glob_elem_id = elem_id;
+
+            nne = 2;
             if(elem_degree == LINEAR){
               if(fprintf(psifel_in_file, " %9ld %9ld %9ld %4d %9ld %9ld\n", 
                     glob_elem_id, nd_id[0], nd_id[1],
@@ -1837,6 +1841,8 @@ void mthread(long isolated,
             }
 
             if(elem_global == NO)glob_elem_id = elem_id;
+
+            nne = 3;
             if(elem_degree == LINEAR){
               if(fprintf(psifel_in_file, " %9ld %9ld %9ld %9ld %4d %9ld %9ld %9ld %9ld %9ld\n", 
                     glob_elem_id, nd_id[0], nd_id[1], nd_id[2],
@@ -1888,6 +1894,8 @@ void mthread(long isolated,
             }
 
             if(elem_global == NO)glob_elem_id = elem_id;
+              
+            nne = 4;
             if(elem_degree == LINEAR){
               if(fprintf(psifel_in_file, " %9ld %9ld %9ld %9ld %9ld %4d %9ld %9ld %9ld %9ld %9ld %9ld\n", 
                     glob_elem_id, nd_id[0], nd_id[1], nd_id[2], nd_id[3],
@@ -1950,6 +1958,8 @@ void mthread(long isolated,
             }
 
             if(elem_global == NO)glob_elem_id = elem_id;
+              
+            nne = 4;
             if(elem_degree == LINEAR){
               if(fprintf(psifel_in_file, " %9ld %9ld %9ld %9ld %9ld %4d %9ld %9ld %9ld %9ld %9ld %9ld %4d %4d %4d %4d\n", 
                     glob_elem_id, nd_id[0], nd_id[1], nd_id[2], nd_id[3],
@@ -2011,6 +2021,8 @@ void mthread(long isolated,
             }
 
             if(elem_global == NO)glob_elem_id = elem_id;
+            
+            nne = 5;
             if(elem_degree == LINEAR){
               if(fprintf(psifel_in_file, " %9ld %9ld %9ld %9ld %9ld %9ld %4d %9ld %9ld %9ld %9ld %9ld %9ld %9ld %4d %4d %4d %4d %4d\n", 
                     glob_elem_id, nd_id[0], nd_id[1], nd_id[2], nd_id[3], nd_id[4],
@@ -2072,6 +2084,8 @@ void mthread(long isolated,
             }
 
             if(elem_global == NO)glob_elem_id = elem_id;
+              
+            nne = 6;
             if(elem_degree == LINEAR){
               if(fprintf(psifel_in_file, " %9ld %9ld %9ld %9ld %9ld %9ld %9ld %4d %9ld %9ld %9ld %9ld %9ld %9ld %9ld %4d %4d %4d %4d %4d\n", 
                     glob_elem_id, nd_id[0], nd_id[1], nd_id[2], nd_id[3], nd_id[4], nd_id[5],
@@ -2138,6 +2152,8 @@ void mthread(long isolated,
             }
 
             if(elem_global == NO)glob_elem_id = elem_id;
+              
+            nne = 8;
             if(elem_degree == LINEAR){
               if(fprintf(psifel_in_file, " %9ld %9ld %9ld %9ld %9ld %9ld %9ld %9ld %9ld %4d %9ld %9ld %9ld %9ld %9ld %9ld %9ld %9ld %4d %4d %4d %4d %4d %4d\n", 
                     glob_elem_id, nd_id[0], nd_id[1], nd_id[2], nd_id[3], nd_id[4], nd_id[5], nd_id[6], nd_id[7],
@@ -2171,7 +2187,7 @@ void mthread(long isolated,
         last_type = type;
         
         if(print_map)  
-          fprintf(map, "%ld %ld\n", entity -> type + mid_node_no, entity -> property_id);
+          fprintf(map, "%ld %ld\n", nne + mid_node_no, entity -> property_id);
 
         remote_elem0[i] = 0;
       }
