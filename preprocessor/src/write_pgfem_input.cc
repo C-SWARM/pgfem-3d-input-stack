@@ -165,6 +165,31 @@ static void write_dot_ic_file(const char *filename,
   out.close();
 }
 
+
+/*
+  This function writes the NBC file for the given physics.
+*/
+static void write_dot_nbc_file(const char *filename,
+                              Domain dom,
+                              const Input_Data inputs,
+                              int physics)
+{
+  std::ofstream out(filename);
+
+  out << inputs.physics_list[physics].number_of_surfaces;
+  
+  for (int i = 0; i < inputs.physics_list[physics].nbc_type_id.size(); ++i){
+    out << "\n";
+    out << inputs.physics_list[physics].nbc_type_id[i][0] << " " << inputs.physics_list[physics].nbc_type_id[i][1] << " ";
+    out << inputs.physics_list[physics].nbc_equation_files[i].size() << " ";
+    
+    for (int j = 0; j < inputs.physics_list[physics].nbc_equation_files[i].size(); ++j)
+      out << inputs.physics_list[physics].nbc_equation_files[i][j] << " ";
+  }
+
+  out.close();
+}
+
 static void write_dot_bc_file(const char *filename,
                               const Domain dom,
                               int physics)
@@ -286,6 +311,26 @@ void write_PGFem3D_input_files(const Options &opt,
     fileDir += "/IC";
     mkdir(fileDir.c_str(), mode);
   }
+  
+  if(opt.human_readable() && inputs.nbc_flag){ //create directory at filebase/NBC
+    std::string fileDir = opt.base_dname();
+    fileDir += "/NBC";
+    mkdir(fileDir.c_str(), mode);
+    
+    //copy NBC equation files to NBC directory
+    std::string equationDir = opt.base_dname();
+    equationDir += "/../";
+    for (int i = 0; i < inputs.nbc_equation_file_list.size(); ++i){
+      std::string equationFile = equationDir;
+      equationFile += inputs.nbc_equation_file_list[i];
+      //cp(equationDir.c_str(), fileDir.c_str(), mode);
+      std::string copyCommand = "cp " + equationFile + " " + fileDir;
+      if (system(copyCommand.c_str())){
+        std::cerr << "ERROR copying NBC equation file\n";
+        exit(1);
+      }
+    }
+  }
 
   if(opt.human_readable() && inputs.bc_flag){ //create directory at filebase/BC
     std::string fileDir = opt.base_dname();
@@ -328,6 +373,21 @@ void write_PGFem3D_input_files(const Options &opt,
         }
         
         
+        /*******************write NBCs**********************/
+        //loop over number of physics (mech and thermal)
+        for(int physics = 0; physics < inputs.number_of_physics; ++physics) {
+          std::stringstream filename1;
+          
+          if(it->initial_conditions[physics].size() == 0 && dom_id >0)
+            continue;
+          
+          filename1 << opt.base_dname() << "/NBC/"<< inputs.physics_list[physics].physics_name << ".nbc";
+          
+          //write NBC data
+          write_dot_nbc_file(filename1.str().c_str(),*it,inputs,physics);
+        }
+        
+        
         /*******************write BCs**********************/
         if (!inputs.bc_flag){   //don't write any bc files if no bc.json files where provided
           continue;
@@ -364,6 +424,9 @@ void write_PGFem3D_input_files(const Options &opt,
     
     if (inputs.bc_flag)
       std::cout << "wrote to " << domains.size() << " BC files" << std::endl;
+      
+    if (inputs.nbc_flag)
+      std::cout << "wrote to " << domains.size() << " NBC files" << std::endl;
     
     if (inputs.ic_flag)
       std::cout << "wrote to " << domains.size() << " IC files" << std::endl;
