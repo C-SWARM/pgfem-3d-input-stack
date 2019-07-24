@@ -67,6 +67,7 @@ void read_input (Input_Data &inputs)
   read_material_properties(inputs);
   read_boundary_conditions(inputs);
   read_initial_conditions(inputs);
+  read_neumann_boundary_conditions(inputs);
   read_loads(inputs);
   read_co_props(inputs);
   read_normal_in(inputs);
@@ -120,10 +121,10 @@ void read_multiphysics(Input_Data &inputs)
     }
     else{                       //set defaults if degree_of_freedom wasn't provided
       if (physics.equation_id == 0) {        //momentum default = 3
-	physics.degree_of_freedom = 3;
+  physics.degree_of_freedom = 3;
       }
       else if (physics.equation_id == 1) {   //energy default = 1
-	physics.degree_of_freedom = 1;
+  physics.degree_of_freedom = 1;
       }
     }
 
@@ -131,7 +132,7 @@ void read_multiphysics(Input_Data &inputs)
     if (!(json_in["physics_list"][i]["number_of_coupled_physics"].is_null())) {   //use default if tag wasn't found
       //if size is given, make sure that there are that many elements in the file
       assert (json_in["physics_list"][i]["number_of_coupled_physics"] == json_in["physics_list"][i]["coupled_physics_ids"].size() 
-	      && "multiphysics file: number_of_coupled_physics doesn't match number of ids");
+        && "multiphysics file: number_of_coupled_physics doesn't match number of ids");
       physics.num_of_coupled_physics = json_in["physics_list"][i]["number_of_coupled_physics"];
     }
     else {       //defualt to number of elements
@@ -146,7 +147,7 @@ void read_multiphysics(Input_Data &inputs)
     if (!(json_in["physics_list"][i]["number_of_vars_to_print"].is_null())) {
       //if size is given, make sure that there are that many elements in the file
       assert (json_in["physics_list"][i]["number_of_vars_to_print"] == json_in["physics_list"][i]["vars_to_print"].size() 
-	      && "multiphysics file: number_of_vars_to_print doesn't match number of vars_to_print");
+        && "multiphysics file: number_of_vars_to_print doesn't match number of vars_to_print");
       physics.num_vars_to_print = json_in["physics_list"][i]["number_of_vars_to_print"];
     }
     else {      //defualt to number of elements
@@ -239,7 +240,7 @@ void read_material_properties(Input_Data &inputs)
   else{
     //if size is given, make sure that there are that many elements in the file
     assert (json_in["number_of_volume_fraction"] == json_in["volume_fraction"].size() 
-	    && "material file: number_of_volume_fraction doesn't match number of volume_fraction elements");
+      && "material file: number_of_volume_fraction doesn't match number of volume_fraction elements");
     inputs.number_of_volume_fraction = json_in["number_of_volume_fraction"];
   }
 
@@ -257,7 +258,7 @@ void read_material_properties(Input_Data &inputs)
   if (!(json_in["number_of_regions_to_set_material"].is_null())) {
     //if size is given, make sure that there are that many elements in the file
     assert (json_in["number_of_regions_to_set_material"] == json_in["material_regions"].size()
-	    && "material file: number_of_regions_to_set_material doesn't match number of material_regions elements");
+      && "material file: number_of_regions_to_set_material doesn't match number of material_regions elements");
     inputs.number_of_regions_to_set_material = json_in["number_of_regions_to_set_material"];
   }
   else
@@ -268,22 +269,24 @@ void read_material_properties(Input_Data &inputs)
     //optional string input for geometry type
     if (json_in["material_regions"][i][0].is_string()) {
       if (json_in["material_regions"][i][0] == "vertex")
-      	inputs.geom_type.push_back(1);
+        inputs.geom_type.push_back(1);
       else if (json_in["material_regions"][i][0] == "curve")
-      	inputs.geom_type.push_back(2);
+        inputs.geom_type.push_back(2);
       else if (json_in["material_regions"][i][0] == "surface")
-      	inputs.geom_type.push_back(3);
+        inputs.geom_type.push_back(3);
       else if (json_in["material_regions"][i][0] == "region")
-      	inputs.geom_type.push_back(4);
+        inputs.geom_type.push_back(4);
       else if (json_in["material_regions"][i][0] == "patch")
-      	inputs.geom_type.push_back(5);
+        inputs.geom_type.push_back(5);
+      else if (json_in["bc_data"][i][0] == "shell")
+        inputs.geom_type.push_back(6);
       else if (json_in["material_regions"][i][0] == "interface")
-      	inputs.geom_type.push_back(7);
+        inputs.geom_type.push_back(7);
       else{
-      	cerr << "Invalid material_regions geometry type\n";
-      	cerr << "First element in material regions must be:\n";
-      	cerr << "\"vertex\", \"curve\", \"surface\", \"region\", \"patch\", or \"interface\" or the integer equivalent\n";
-      	exit(1);
+        cerr << "Invalid material_regions geometry type\n";
+        cerr << "First element in material regions must be:\n";
+        cerr << "\"vertex\", \"curve\", \"surface\", \"region\", \"patch\", \"shell\", or \"interface\" or the integer equivalent\n";
+        exit(1);
       }
     }
     //original number input
@@ -299,7 +302,7 @@ void read_material_properties(Input_Data &inputs)
   if (!(json_in["number_of_bases"].is_null())) {
     //if size is given, make sure that there are that many elements in the file
     assert (json_in["number_of_bases"] == json_in["basis_vectors"].size()
-	    && "material file: number_of_bases doesn't match number of basis_vectors elements");
+      && "material file: number_of_bases doesn't match number of basis_vectors elements");
     inputs.number_of_bases = json_in["number_of_bases"];
   }
   else
@@ -372,8 +375,8 @@ void read_material_properties(Input_Data &inputs)
 
     if (!json_in["materials"][mat]["thermal_conductivity"].is_null())
       for (int i = 0; i < 9; ++i)
-	      material.thermal_conductivity[i] = json_in["materials"][mat]["thermal_conductivity"][i];
-	
+        material.thermal_conductivity[i] = json_in["materials"][mat]["thermal_conductivity"][i];
+  
     if (!json_in["materials"][mat]["fraction_of_heat_from_mechanical"].is_null())
       material.FHS_MW = json_in["materials"][mat]["fraction_of_heat_from_mechanical"];
 
@@ -398,7 +401,7 @@ void read_material_properties(Input_Data &inputs)
   else{
     //if size is given, make sure that there are that many elements in the file
     assert (json_in["nReactions"] == json_in["reactions"].size()
-	    && "material file: number of reactions doesn't match amount of reactions elements");
+      && "material file: number of reactions doesn't match amount of reactions elements");
     inputs.nReactions = json_in["nReactions"];
   }
   
@@ -529,12 +532,12 @@ void read_numerical_param(Input_Data &inputs)
     if (inputs.physics_list[current_physics].compute_initial_residuals) {
       //give a warning if compute_initial_residuals is true, but no value was provided
       if (json_in["nonlinear_solution_method"]["physics"][i]["value_for_initial_residuals"].is_null()) {
-	cout << "WARNING: compute_initial_residuals was set to true, but no value was provided.\n";
-	cout << "setting value_for_initial_residuals to 0\n";
-	inputs.physics_list[current_physics].value_for_initial_residuals = 0;
+  cout << "WARNING: compute_initial_residuals was set to true, but no value was provided.\n";
+  cout << "setting value_for_initial_residuals to 0\n";
+  inputs.physics_list[current_physics].value_for_initial_residuals = 0;
       }
       else{
-	inputs.physics_list[current_physics].value_for_initial_residuals = json_in["nonlinear_solution_method"]["physics"][i]["value_for_initial_residuals"];
+  inputs.physics_list[current_physics].value_for_initial_residuals = json_in["nonlinear_solution_method"]["physics"][i]["value_for_initial_residuals"];
       }
     }
   }
@@ -569,36 +572,36 @@ void read_boundary_conditions (Input_Data &inputs)
       //read 1st BC parameter:
       //optional string input for geometry type
       if (json_in["bc_data"][i][0].is_string()) {
-	if (json_in["bc_data"][i][0] == "vertex")
-	  bc_data_entry.push_back(1);
-	else if (json_in["bc_data"][i][0] == "curve")
-	  bc_data_entry.push_back(2);
-	else if (json_in["bc_data"][i][0] == "surface")
-      	bc_data_entry.push_back(3);
-	else if (json_in["bc_data"][i][0] == "region")
-	  bc_data_entry.push_back(4);
-	else if (json_in["bc_data"][i][0] == "patch")
-	  bc_data_entry.push_back(5);
-	else if (json_in["bc_data"][i][0] == "interface")
-	  bc_data_entry.push_back(7);
-	else{
-	  cerr << "Invalid bc_data geometry type\n";
-	  cerr << "First element in material regions must be:\n";
-	  cerr << "\"vertex\", \"curve\", \"surface\", \"region\", \"patch\", or \"interface\" or the integer equivalent\n";
-      	exit(1);
-	}
+        if (json_in["bc_data"][i][0] == "vertex")
+          bc_data_entry.push_back(1);
+        else if (json_in["bc_data"][i][0] == "curve")
+          bc_data_entry.push_back(2);
+        else if (json_in["bc_data"][i][0] == "surface")
+          bc_data_entry.push_back(3);
+        else if (json_in["bc_data"][i][0] == "region")
+          bc_data_entry.push_back(4);
+        else if (json_in["bc_data"][i][0] == "patch")
+          bc_data_entry.push_back(5);
+        else if (json_in["bc_data"][i][0] == "shell")
+          bc_data_entry.push_back(6);
+        else if (json_in["bc_data"][i][0] == "interface")
+          bc_data_entry.push_back(7);
+        else{
+          cerr << "Invalid bc_data geometry type\n";
+          cerr << "First element in material regions must be:\n";
+          cerr << "\"vertex\", \"curve\", \"surface\", \"region\", \"patch\", \"shell\", or \"interface\" or the integer equivalent\n";
+          exit(1);
+        }
       }
       //original number input
       else
-	bc_data_entry.push_back(json_in["bc_data"][i][0]);
+        bc_data_entry.push_back(json_in["bc_data"][i][0]);
 
       //read additional BC parameters:
       for (uint j = 1; j < json_in["bc_data"][i].size(); ++j) {   //loop for each additional value in each entry
-	bc_data_entry.push_back(json_in["bc_data"][i][j]);
-
-
+        bc_data_entry.push_back(json_in["bc_data"][i][j]);
       }
-	
+  
       inputs.physics_list[phys].bc_data.push_back(bc_data_entry);
     }
       
@@ -607,6 +610,91 @@ void read_boundary_conditions (Input_Data &inputs)
     }
       
     fBC.close();
+  }
+}
+
+//read each physics' boundary conditions file
+void read_neumann_boundary_conditions (Input_Data &inputs)
+{
+  cout << "reading nbc files\n";
+
+  //loop through each physics
+  for (int phys = 0; phys < inputs.number_of_physics; ++phys) {
+    string NBC_file = inputs.physics_list[phys].physics_name + "_nbc.json";
+    ifstream fNBC(NBC_file);
+
+    if (!fNBC.good()) {    //file doesn't exist
+      cout << NBC_file << " not found" << endl;
+      continue;
+    }
+    inputs.nbc_flag = true;   //at least 1 bc.json file exists
+
+    json json_in;
+    fNBC >> json_in;
+  
+    inputs.physics_list[phys].number_of_surfaces = json_in["number_of_surfaces"];
+    
+    //list_of_nbc size should be the size of BC list
+    if (json_in["list_of_nbc"].size() != inputs.physics_list[phys].bc_data.size()){
+      cerr << "NBC ERROR: number of list_of_nbc entries must match bc_data entries\n";
+      exit(1);
+    }
+    
+    //store a vector of vectors for bc_data
+    for (uint i = 0; i < json_in["list_of_nbc"].size(); ++i) {  //loop for each nbc array
+      std::vector<int> nbc_int_data_entry;
+       
+      //read 1st BC parameter:
+      //optional string input for geometry type
+      if (json_in["list_of_nbc"][i][0].is_string()) {
+        if (json_in["list_of_nbc"][i][0] == "vertex")
+          nbc_int_data_entry.push_back(1);
+        else if (json_in["list_of_nbc"][i][0] == "curve")
+          nbc_int_data_entry.push_back(2);
+        else if (json_in["list_of_nbc"][i][0] == "surface")
+          nbc_int_data_entry.push_back(3);
+        else if (json_in["list_of_nbc"][i][0] == "region")
+          nbc_int_data_entry.push_back(4);
+        else if (json_in["list_of_nbc"][i][0] == "patch")
+          nbc_int_data_entry.push_back(5);
+        else if (json_in["list_of_nbc"][i][0] == "shell")
+          nbc_int_data_entry.push_back(6);
+        else if (json_in["list_of_nbc"][i][0] == "interface")
+          nbc_int_data_entry.push_back(7);
+        else{
+          cerr << "Invalid bc_data geometry type\n";
+          cerr << "First element in material regions must be:\n";
+          cerr << "\"vertex\", \"curve\", \"surface\", \"region\", \"patch\", \"shell\", or \"interface\" or the integer equivalent\n";
+          exit(1);
+        }
+      }
+      //original number input
+      else
+        nbc_int_data_entry.push_back(json_in["list_of_nbc"][i][0]);
+
+      //read each NBC geometry type's ID:
+      nbc_int_data_entry.push_back(json_in["list_of_nbc"][i][1]);
+      inputs.physics_list[phys].nbc_type_id.push_back(nbc_int_data_entry); //add to physics struct
+
+
+      //read NBC equations provided as file strings
+      std::vector<std::string> nbc_file_entry;
+      for (uint j = 2; j < json_in["list_of_nbc"][i].size(); ++j) {   //loop for each additional value in each entry
+        nbc_file_entry.push_back(json_in["list_of_nbc"][i][j]);
+        
+        //to make copying the equation files easier, have a vector of unique equation file names
+        std::vector<std::string>::iterator iter;                                  //search if the file is already listed
+        iter = find (inputs.nbc_equation_file_list.begin(), inputs.nbc_equation_file_list.end(), json_in["list_of_nbc"][i][j]);
+        if (iter == inputs.nbc_equation_file_list.end())                                 //not currently found in file list
+          inputs.nbc_equation_file_list.push_back(json_in["list_of_nbc"][i][j]);  //add equation file to it
+      }
+      assert ( ((nbc_file_entry.size() == 1) || (nbc_file_entry.size() == 3))
+      && "list of nbc must have 1 or 3 equations");
+      inputs.physics_list[phys].nbc_equation_files.push_back(nbc_file_entry);
+
+    }
+
+    fNBC.close();
   }
 }
 
@@ -689,12 +777,14 @@ void read_initial_conditions (Input_Data &inputs)
           g_id_entry.push_back(4);
         else if (json_in["g_id"][i][0] == "patch")
           g_id_entry.push_back(5);
+        else if (json_in["g_id"][i][0] == "shell")
+          g_id_entry.push_back(6);
         else if (json_in["g_id"][i][0] == "interface")
           g_id_entry.push_back(7);
         else{
           cerr << "Invalid g_id geometry type\n";
           cerr << "First element in material regions must be:\n";
-          cerr << "\"vertex\", \"curve\", \"surface\", \"region\", \"patch\", or \"interface\" or the integer equivalent\n";
+          cerr << "\"vertex\", \"curve\", \"surface\", \"region\", \"patch\", \"shell\", or \"interface\" or the integer equivalent\n";
           exit(1);
         }
       }
@@ -762,10 +852,10 @@ void read_loads (Input_Data &inputs)
     for (uint i = 0; i < json_in["loading_increments"].size(); ++i) {
       std::vector<double> loads;
       if (json_in["loading_increments"][i].is_string()) {  //check whether to call the string parser
-	parse_json_string(json_in["loading_increments"][i], loads, inputs.physics_list[phys].num_of_loading_steps);
+  parse_json_string(json_in["loading_increments"][i], loads, inputs.physics_list[phys].num_of_loading_steps);
       }
       else{
-	parse_json_list(json_in["loading_increments"][i], loads, inputs.physics_list[phys].num_of_loading_steps);
+  parse_json_list(json_in["loading_increments"][i], loads, inputs.physics_list[phys].num_of_loading_steps);
       }
 
     inputs.physics_list[phys].loading_increments.push_back(loads);
@@ -799,7 +889,7 @@ void read_co_props (Input_Data &inputs)
   if (!(json_in["number_of_cohesive_potentials"].is_null())) {
     //if size is given, make sure that there are that many elements in the file
     assert (json_in["number_of_cohesive_potentials"] == json_in["cohesive_potentials"].size()
-	    && ".in.co_props file: number_of_cohesive_potentials doesn't match number of cohesive_potentials elements");
+      && ".in.co_props file: number_of_cohesive_potentials doesn't match number of cohesive_potentials elements");
     inputs.number_of_cohesive_potentials = json_in["number_of_cohesive_potentials"];
   }
   else {
@@ -814,7 +904,7 @@ void read_co_props (Input_Data &inputs)
 
     for (int j = 0; j < 4; ++j)
       if (!(json_in["cohesive_potentials"][i]["phenomenological_potentials"][j].is_null())) {
-	cohesive_potential.phenomenological_potentials[j] = json_in["cohesive_potentials"][i]["phenomenological_potentials"][j];
+  cohesive_potential.phenomenological_potentials[j] = json_in["cohesive_potentials"][i]["phenomenological_potentials"][j];
       }
 
     inputs.cohesive_potentials.push_back(cohesive_potential);
@@ -893,24 +983,26 @@ void read_periodic (Input_Data &inputs)
       //read type parameter:
       //optional string input for geometry type
       if (json_in["pairs"][set][pair]["type"].is_string()) {
-	      if (json_in["pairs"][set][pair]["type"] == "vertex")
-	        typeID.type = 1;
-	      else if (json_in["pairs"][set][pair]["type"] == "curve")
-	        typeID.type = 2;
-	      else if (json_in["pairs"][set][pair]["type"] == "surface")
-	        typeID.type = 3;
-	      else if (json_in["pairs"][set][pair]["type"] == "region")
-	        typeID.type = 4;
-	      else if (json_in["pairs"][set][pair]["type"] == "patch")
-	        typeID.type = 5;
-	      else if (json_in["pairs"][set][pair]["type"] == "interface")
-	        typeID.type = 7;
-	      else{
-	        cerr << "Invalid periodic geometry type\n";
-	        cerr << "\"type\" in periodic pair must be:\n";
-	        cerr << "\"vertex\", \"curve\", \"surface\", \"region\", \"patch\", or \"interface\" or the integer equivalent\n";
-            	exit(1);
-	      }
+        if (json_in["pairs"][set][pair]["type"] == "vertex")
+          typeID.type = 1;
+        else if (json_in["pairs"][set][pair]["type"] == "curve")
+          typeID.type = 2;
+        else if (json_in["pairs"][set][pair]["type"] == "surface")
+          typeID.type = 3;
+        else if (json_in["pairs"][set][pair]["type"] == "region")
+          typeID.type = 4;
+        else if (json_in["pairs"][set][pair]["type"] == "patch")
+          typeID.type = 5;
+        else if (json_in["pairs"][set][pair]["type"] == "shell")
+          typeID.type = 6;
+        else if (json_in["pairs"][set][pair]["type"] == "interface")
+          typeID.type = 7;
+        else{
+          cerr << "Invalid periodic geometry type\n";
+          cerr << "\"type\" in periodic pair must be:\n";
+          cerr << "\"vertex\", \"curve\", \"surface\", \"region\", \"patch\", \"shell\", or \"interface\" or the integer equivalent\n";
+              exit(1);
+        }
       }
       else                                     //read original integer input
         typeID.type = json_in["pairs"][set][pair]["type"];
@@ -958,24 +1050,26 @@ void read_output_settings(Input_Data &inputs)
       //read type parameter:
       //optional string input for geometry type
       if (json_in["probs"][i]["pairs"][j]["type"].is_string()) {
-	      if (json_in["probs"][i]["pairs"][j]["type"] == "vertex")
-	        typeID.type = 1;
-	      else if (json_in["probs"][i]["pairs"][j]["type"] == "curve")
-	        typeID.type = 2;
-	      else if (json_in["probs"][i]["pairs"][j]["type"] == "surface")
-	        typeID.type = 3;
-	      else if (json_in["probs"][i]["pairs"][j]["type"] == "region")
-	        typeID.type = 4;
-	      else if (json_in["probs"][i]["pairs"][j]["type"] == "patch")
-	        typeID.type = 5;
-	      else if (json_in["probs"][i]["pairs"][j]["type"] == "interface")
-	        typeID.type = 7;
-	      else{
-	        cerr << "Invalid periodic geometry type\n";
-	        cerr << "\"type\" in output settigns prob pair must be:\n";
-	        cerr << "\"vertex\", \"curve\", \"surface\", \"region\", \"patch\", or \"interface\" or the integer equivalent\n";
-          	exit(1);
-	      }
+        if (json_in["probs"][i]["pairs"][j]["type"] == "vertex")
+          typeID.type = 1;
+        else if (json_in["probs"][i]["pairs"][j]["type"] == "curve")
+          typeID.type = 2;
+        else if (json_in["probs"][i]["pairs"][j]["type"] == "surface")
+          typeID.type = 3;
+        else if (json_in["probs"][i]["pairs"][j]["type"] == "region")
+          typeID.type = 4;
+        else if (json_in["probs"][i]["pairs"][j]["type"] == "patch")
+          typeID.type = 5;
+        else if (json_in["probs"][i]["pairs"][j]["type"] == "shell")
+          typeID.type = 6;
+        else if (json_in["probs"][i]["pairs"][j]["type"] == "interface")
+          typeID.type = 7;
+        else{
+          cerr << "Invalid periodic geometry type\n";
+          cerr << "\"type\" in output settigns prob pair must be:\n";
+          cerr << "\"vertex\", \"curve\", \"surface\", \"region\", \"patch\", \"shell\", or \"interface\" or the integer equivalent\n";
+            exit(1);
+        }
       }
       else                                     //read original integer input
         typeID.type = json_in["probs"][i]["pairs"][j]["type"];

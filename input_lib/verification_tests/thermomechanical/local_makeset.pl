@@ -8,7 +8,7 @@ $convert_options = '-v -HumanReadable';#-pr 1.0 1.0 1.0';
 
 $t3d_path = '/cswarm/tools/bin/t3d';
 $split_path = '/cswarm/tools/bin/t3d2psifel';
-$convert_path ='../../con3dpp/src/con3d++';
+$convert_path ='../../../preprocessor/src/con3d++';
 
 sub do_error {
   my $string = shift;

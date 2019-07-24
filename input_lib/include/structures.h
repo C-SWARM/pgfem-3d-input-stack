@@ -22,6 +22,8 @@ struct Input_Data{
   //(pgfem reads BCs from .in file if there's no BC directory)
   bool bc_flag = false;    //set to true if a bc.json file exists
   bool ic_flag = false;    //set to true if an ic.json file exists
+  bool nbc_flag = false;    //set to true if an nbc.json file exists
+  std::vector<std::string> nbc_equation_file_list;  //list of unique NBC equation files
 
 
   /*****************multiphysics_in data************/
@@ -111,7 +113,6 @@ struct Basis_Vector{
   int e3[3] = {0, 0, 0};
 };
 
-
 //contains physics-specific data
 struct Physics{
 
@@ -143,6 +144,11 @@ struct Physics{
   */
   std::vector<std::vector<int>> bc_data;
   std::vector<double> bc_replacements;
+  
+  /*****************nbc data*********************/
+  int number_of_surfaces = 0;
+  std::vector<std::vector<int>> nbc_type_id;
+  std::vector<std::vector<std::string>> nbc_equation_files;
 
   /*****************load data*******************/
   int num_of_loading_steps = 0;

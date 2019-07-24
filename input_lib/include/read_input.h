@@ -32,6 +32,9 @@ void read_boundary_conditions (Input_Data &inputs);
 //reads initial conditions to input data structure
 void read_initial_conditions (Input_Data &inputs);
 
+//reads Neumann boundary conditions to input data structure
+void read_neumann_boundary_conditions(Input_Data &inputs);
+
 //reads load data into input data structure
 void read_loads (Input_Data &inputs);
 
